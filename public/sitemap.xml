@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Starter sitemap — served as a real static file (not the SPA shell).
+  The seo-aeo skill expands this to list every indexable route and rewrites
+  <loc> to absolute URLs on the deployed domain, e.g. https://your-domain/.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>/</loc>
+  </url>
+</urlset>

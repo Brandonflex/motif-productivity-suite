@@ -1,0 +1,221 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Blink UI Theme CSS
+   REQUIRED for @blinkdotnew/ui components to render correctly.
+   BlinkUIProvider adds .theme-{name} + .dark/.light to <html>,
+   activating the matching CSS variable set below.
+   ───────────────────────────────────────────────────────────────────────────── */
+@import '@blinkdotnew/ui/styles';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* Full viewport chain so AppShell / Sidebar h-full + flex-1 SidebarContent work */
+  html {
+    height: 100%;
+  }
+
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body {
+    min-height: 100%;
+    min-height: 100dvh;
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    letter-spacing: var(--tracking-normal);
+  }
+}
+
+/* ── Motif palette (unlayered, after utilities) ────────────────────────────────
+   Overrides @blinkdotnew/ui theme colors. @layer base loses specificity to UI themes.
+   Dark mode uses :root.dark + .theme-*.dark to match BlinkUIProvider.
+
+   Motif — clarity over complexity.
+   Primary: near-black (#111827) for text and UI chrome.
+   Accent: confident blue (#2563EB) — one accent, used sparingly.
+   Surfaces: warm off-white (#FAFAFA) light, deep charcoal (#09090B) dark.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Light mode — calm, focused, premium */
+  --background: 0 0% 98%;             /* #FAFAFA — page background */
+  --foreground: 221 39% 11%;          /* #111827 — primary text */
+  --card: 0 0% 100%;                  /* #FFFFFF — surface */
+  --card-foreground: 221 39% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 221 39% 11%;
+
+  /* Primary — near-black for UI chrome, buttons, active states */
+  --primary: 221 39% 11%;             /* #111827 */
+  --primary-foreground: 0 0% 98%;
+
+  /* Secondary — warm gray for secondary surfaces */
+  --secondary: 220 14% 96%;           /* #F3F4F6 */
+  --secondary-foreground: 221 39% 20%;
+
+  /* Muted — subtle backgrounds, disabled states */
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;     /* #6B7280 */
+
+  /* Accent — single blue, confident, restrained */
+  --accent: 221 83% 53%;              /* #2563EB */
+  --accent-foreground: 0 0% 100%;
+
+  /* Destructive — red for delete, errors */
+  --destructive: 0 84% 60%;           /* #EF4444 */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Borders and inputs */
+  --border: 220 13% 91%;              /* #E5E7EB */
+  --input: 220 13% 91%;
+
+  /* Focus ring — matches accent */
+  --ring: 221 83% 53%;
+
+  /* Charts — restrained palette */
+  --chart-1: 221 83% 53%;             /* blue */
+  --chart-2: 160 84% 39%;             /* emerald */
+  --chart-3: 38 92% 50%;              /* amber */
+  --chart-4: 262 52% 47%;             /* violet */
+  --chart-5: 0 72% 51%;               /* red */
+
+  /* Sidebar — slightly darker than page background */
+  --sidebar: 220 14% 98%;
+  --sidebar-foreground: 221 39% 11%;
+  --sidebar-primary: 221 39% 11%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 220 14% 94%;
+  --sidebar-accent-foreground: 221 39% 11%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 221 83% 53%;
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Shadows — subtle, natural depth */
+  --shadow-2xs: 0 1px 2px hsl(221 39% 11% / 0.04);
+  --shadow-xs: 0 1px 3px hsl(221 39% 11% / 0.05);
+  --shadow-sm: 0 1px 3px hsl(221 39% 11% / 0.06), 0 1px 2px hsl(221 39% 11% / 0.04);
+  --shadow: 0 1px 3px hsl(221 39% 11% / 0.06), 0 1px 2px hsl(221 39% 11% / 0.04);
+  --shadow-md: 0 4px 6px hsl(221 39% 11% / 0.05), 0 2px 4px hsl(221 39% 11% / 0.04);
+  --shadow-lg: 0 10px 15px hsl(221 39% 11% / 0.06), 0 4px 6px hsl(221 39% 11% / 0.04);
+  --shadow-xl: 0 20px 25px hsl(221 39% 11% / 0.08), 0 8px 10px hsl(221 39% 11% / 0.04);
+  --shadow-2xl: 0 25px 50px hsl(221 39% 11% / 0.12);
+
+  /* Misc */
+  --tracking-normal: -0.01em;
+  --spacing: 0.25rem;
+  --radius: 0.5rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Duration */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* Easing */
+  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root.dark,
+.theme-linear.dark,
+.theme-glass.dark,
+.theme-midnight.dark,
+.theme-minimal.dark {
+  /* Dark mode — deep, quiet, focused */
+  --background: 240 10% 4%;           /* #09090B */
+  --foreground: 0 0% 93%;             /* #EDEDED */
+  --card: 240 6% 10%;                 /* #18181B */
+  --card-foreground: 0 0% 93%;
+  --popover: 240 6% 10%;
+  --popover-foreground: 0 0% 93%;
+
+  /* Primary — light for dark backgrounds */
+  --primary: 0 0% 93%;
+  --primary-foreground: 240 10% 4%;
+
+  /* Secondary — dark gray surfaces */
+  --secondary: 240 5% 15%;            /* #26262B */
+  --secondary-foreground: 0 0% 80%;
+
+  /* Muted */
+  --muted: 240 6% 15%;
+  --muted-foreground: 240 5% 55%;     /* #8B8B90 */
+
+  /* Accent — slightly brighter for dark mode readability */
+  --accent: 217 91% 60%;              /* #3B82F6 */
+  --accent-foreground: 0 0% 100%;
+
+  /* Destructive */
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Borders */
+  --border: 240 4% 20%;               /* #2E2E33 */
+  --input: 240 4% 20%;
+
+  /* Focus ring */
+  --ring: 217 91% 60%;
+
+  /* Charts */
+  --chart-1: 217 91% 65%;
+  --chart-2: 160 70% 45%;
+  --chart-3: 38 82% 55%;
+  --chart-4: 262 60% 55%;
+  --chart-5: 0 72% 55%;
+
+  /* Sidebar */
+  --sidebar: 240 10% 6%;
+  --sidebar-foreground: 0 0% 93%;
+  --sidebar-primary: 0 0% 93%;
+  --sidebar-primary-foreground: 240 10% 6%;
+  --sidebar-accent: 240 5% 16%;
+  --sidebar-accent-foreground: 0 0% 93%;
+  --sidebar-border: 240 4% 20%;
+  --sidebar-ring: 217 91% 60%;
+
+  /* Dark mode shadows — deeper, more subtle */
+  --shadow-2xs: 0 1px 2px hsl(0 0% 0% / 0.2);
+  --shadow-xs: 0 1px 3px hsl(0 0% 0% / 0.25);
+  --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.3);
+  --shadow: 0 1px 3px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 4px 6px hsl(0 0% 0% / 0.35);
+  --shadow-lg: 0 10px 15px hsl(0 0% 0% / 0.4);
+  --shadow-xl: 0 20px 25px hsl(0 0% 0% / 0.45);
+  --shadow-2xl: 0 25px 50px hsl(0 0% 0% / 0.5);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

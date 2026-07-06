@@ -1,0 +1,50 @@
+{
+  "name": "vite-react-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/finalize-static-build.mjs",
+    "preview": "vite preview",
+    "lint:css": "stylelint \"src/**/*.css\" --fix --quiet",
+    "lint:js": "eslint . --ext ts,tsx --report-unused-disable-directives",
+    "lint:types": "tsc --noEmit",
+    "check:css-vars": "node scripts/check-css-variables.js",
+    "check:css-classes": "node scripts/check-css-classes.js",
+    "lint": "bun run lint:types && bun run lint:js && bun run lint:css && bun run check:css-vars && bun run check:css-classes"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2",
+    "vite": "8.0.14"
+  },
+  "dependencies": {
+    "@blinkdotnew/sdk": "^2.6.2",
+    "@blinkdotnew/ui": "^0.5.2",
+    "@dnd-kit/core": "^6.3.1",
+    "@hookform/resolvers": "^5.4.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@tanstack/react-query": "5.101.0",
+    "@tanstack/react-router": "1.170.11",
+    "@tanstack/react-start": "1.168.19",
+    "@vitejs/plugin-react": "5.2.0",
+    "autoprefixer": "10.4.16",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "framer-motion": "^12.40.0",
+    "glob": "^13.0.6",
+    "lucide-react": "^1.17.0",
+    "postcss": "8.4.31",
+    "react-hook-form": "^7.78.0",
+    "react-hot-toast": "^2.6.0",
+    "react-responsive": "^10.0.1",
+    "recharts": "^3.8.1",
+    "stylelint": "^17.13.0",
+    "stylelint-config-standard": "^40.0.0",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "3.4.17",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.4.3"
+  }
+}
