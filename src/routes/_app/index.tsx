@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+
 import { useState } from 'react'
 import {
   LayoutDashboard,
@@ -13,17 +13,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_app/')({
-  head: () => ({
-    meta: [
-      { title: 'Dashboard · Motif' },
-      { name: 'description', content: 'Your productivity overview.' },
-    ],
-  }),
-  component: DashboardPage,
-})
-
-/** ── Type Definitions ─────────────────────────────────────────── */
 
 interface Task {
   id: string
@@ -171,7 +160,7 @@ function DeadlineItem({ deadline }: { deadline: UpcomingDeadline }) {
 
 /** ── Page ─────────────────────────────────────────────────────── */
 
-function DashboardPage() {
+ export function DashboardPage() {
   const [greeting] = useState(() => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Good morning'
@@ -276,4 +265,4 @@ function DashboardPage() {
       </div>
     </div>
   )
-}
+} 
