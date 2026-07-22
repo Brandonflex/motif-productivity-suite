@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import {
   Avatar,
@@ -25,7 +26,6 @@ interface NavItemDef {
   href: string
   icon: ReactNode
   label: string
-  active?: boolean
 }
 
 const NAV_ITEMS: NavItemDef[] = [
@@ -33,7 +33,6 @@ const NAV_ITEMS: NavItemDef[] = [
     href: '/',
     icon: <LayoutDashboard className="h-4 w-4" />,
     label: 'Dashboard',
-    active: true,
   },
   {
     href: '/tasks',
@@ -53,22 +52,27 @@ const NAV_ITEMS: NavItemDef[] = [
 ]
 
 function NavItem({ item, collapsed }: { item: NavItemDef; collapsed: boolean }) {
+  const location = useLocation()
+  const isActive = location.pathname === item.href
+
   const link = (
-    <a
-      href={item.href}
+    <Link
+      to={item.href}
       className={cn(
         'flex items-center gap-2.5 rounded-md text-sm transition-all duration-150 cursor-pointer',
         collapsed ? 'justify-center w-8 h-8 mx-auto' : 'px-3 py-2 w-full',
-        item.active
+        isActive
           ? 'bg-accent/10 text-accent font-medium'
           : 'text-muted-foreground hover:bg-accent/5 hover:text-foreground'
       )}
     >
       <span className="shrink-0">{item.icon}</span>
       {!collapsed && <span className="truncate">{item.label}</span>}
-    </a>
+    </Link>
   )
+  
   if (!collapsed) return link
+  
   return (
     <Tooltip>
       <TooltipTrigger asChild>{link}</TooltipTrigger>
