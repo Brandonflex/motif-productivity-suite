@@ -1,5 +1,5 @@
-
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   CheckCircle2,
@@ -12,7 +12,6 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
 
 interface Task {
   id: string
@@ -160,7 +159,9 @@ function DeadlineItem({ deadline }: { deadline: UpcomingDeadline }) {
 
 /** ── Page ─────────────────────────────────────────────────────── */
 
- export function DashboardPage() {
+export function DashboardPage() {
+  const navigate = useNavigate()
+  
   const [greeting] = useState(() => {
     const hour = new Date().getHours()
     if (hour < 12) return 'Good morning'
@@ -202,6 +203,7 @@ function DeadlineItem({ deadline }: { deadline: UpcomingDeadline }) {
             </div>
             <button
               type="button"
+              onClick={() => navigate('/tasks')}
               className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98]"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -217,6 +219,7 @@ function DeadlineItem({ deadline }: { deadline: UpcomingDeadline }) {
 
           <button
             type="button"
+            onClick={() => navigate('/tasks')}
             className="inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:text-accent/80"
           >
             View all tasks
@@ -265,4 +268,4 @@ function DeadlineItem({ deadline }: { deadline: UpcomingDeadline }) {
       </div>
     </div>
   )
-} 
+}
