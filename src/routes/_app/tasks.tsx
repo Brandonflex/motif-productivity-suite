@@ -1,25 +1,9 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-
-interface Task {
-  id: string;
-  title: string;
-  project: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'In Progress' | 'Completed' | 'Pending';
-  dueDate: string;
-}
-
-const initialTasks: Task[] = [
-  { id: '1', title: 'Finalize Q3 roadmap presentation', project: 'Strategy', priority: 'High', status: 'In Progress', dueDate: 'Jul 24' },
-  { id: '2', title: 'Review design system tokens', project: 'Design System', priority: 'Medium', status: 'Pending', dueDate: 'Jul 26' },
-  { id: '3', title: 'Refactor authentication state management', project: 'Core Engineering', priority: 'High', status: 'In Progress', dueDate: 'Jul 28' },
-  { id: '4', title: 'Update project dependencies & audit', project: 'DevOps', priority: 'Low', status: 'Completed', dueDate: 'Jul 20' },
-  { id: '5', title: 'Draft API documentation for v2 webhooks', project: 'Documentation', priority: 'Medium', status: 'Pending', dueDate: 'Aug 01' },
-];
+import { useWorkspace } from '@/context/WorkspaceContext';
 
 export function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { tasks, addTask, toggleTaskStatus } = useWorkspace();
   const [filter, setFilter] = useState<'All' | 'In Progress' | 'Pending' | 'Completed'>('All');
   
   // Modal State
@@ -31,36 +15,22 @@ export function TasksPage() {
     dueDate: ''
   });
 
-  const toggleTaskStatus = (id: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id
-          ? { ...task, status: task.status === 'Completed' ? 'In Progress' : 'Completed' }
-          : task
-      )
-    );
-  };
-
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
 
-    const taskEntry: Task = {
-      id: Math.random().toString(36).substring(7), // Generates a simple unique ID
+    addTask({
       title: newTask.title,
       project: newTask.project || 'General',
       priority: newTask.priority,
       status: 'Pending',
-      
-      // Format the raw date input (YYYY-MM-DD) to a short format (e.g., Jul 24)
       dueDate: newTask.dueDate 
         ? new Date(newTask.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
         : 'No Date'
-    };
+    });
 
-    setTasks([taskEntry, ...tasks]); // Add to top of the list
-    setIsModalOpen(false); // Close modal
-    setNewTask({ title: '', project: '', priority: 'Medium', dueDate: '' }); // Reset form
+    setIsModalOpen(false);
+    setNewTask({ title: '', project: '', priority: 'Medium', dueDate: '' });
   };
 
   const filteredTasks = filter === 'All' ? tasks : tasks.filter(t => t.status === filter);
