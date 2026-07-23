@@ -1,55 +1,55 @@
 import { useState } from 'react';
-import { X, FolderKanban, MoreVertical } from 'lucide-react';
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  status: 'Planning' | 'Active' | 'Paused' | 'Completed';
-  progress: number;
-}
-
-const initialProjects: Project[] = [
-  { id: 'p1', name: 'Brand Refresh 2026', description: 'Overhaul of visual identity and marketing assets.', status: 'Active', progress: 65 },
-  { id: 'p2', name: 'API v2 Migration', description: 'Upgrading backend services to the new GraphQL schema.', status: 'Planning', progress: 10 },
-  { id: 'p3', name: 'User Onboarding Flow', description: 'Redesign the first-time user experience and tooltips.', status: 'Active', progress: 40 },
-  { id: 'p4', name: 'Q3 Financial Audit', description: 'Internal review of Q3 expenditures and budget allocation.', status: 'Paused', progress: 80 },
-];
+import { X, FolderKanban, Pencil, Trash2 } from 'lucide-react';
+import { useWorkspace, Project } from '@/context/WorkspaceContext';
 
 export function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const { projects, addProject, updateProject, deleteProject, updateProjectProgress, updateProjectStatus } = useWorkspace();
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newProject, setNewProject] = useState({
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'Planning' as const
+    status: 'Planning' as Project['status']
   });
 
-  const handleUpdateProgress = (id: string, newProgress: number) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, progress: newProgress } : p));
+  const handleOpenCreate = () => {
+    setEditingProject(null);
+    setFormData({ name: '', description: '', status: 'Planning' });
+    setIsModalOpen(true);
   };
 
-  const handleUpdateStatus = (id: string, newStatus: Project['status']) => {
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+  const handleOpenEdit = (project: Project) => {
+    setEditingProject(project);
+    setFormData({
+      name: project.name,
+      description: project.description,
+      status: project.status
+    });
+    setIsModalOpen(true);
   };
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProject.name.trim()) return;
+    if (!formData.name.trim()) return;
 
-    const projectEntry: Project = {
-      id: Math.random().toString(36).substring(7),
-      name: newProject.name,
-      description: newProject.description || 'No description provided.',
-      status: newProject.status,
-      progress: 0, // Brand new projects start at 0%
-    };
+    if (editingProject) {
+      updateProject(editingProject.id, {
+        name: formData.name,
+        description: formData.description || 'No description provided.',
+        status: formData.status,
+      });
+    } else {
+      addProject({
+        name: formData.name,
+        description: formData.description || 'No description provided.',
+        status: formData.status,
+      });
+    }
 
-    setProjects([projectEntry, ...projects]);
     setIsModalOpen(false);
-    setNewProject({ name: '', description: '', status: 'Planning' });
   };
 
   return (
@@ -60,7 +60,7 @@ export function ProjectsPage() {
           <p className="text-sm text-gray-500 mt-1">Manage your active initiatives and track their progress.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
         >
           + New Project
@@ -70,71 +70,105 @@ export function ProjectsPage() {
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {projects.map(project => (
-          <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition group">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                  <FolderKanban className="h-5 w-5" />
+          <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition group flex flex-col justify-between">
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <FolderKanban className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{project.name}</h3>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">{project.name}</h3>
+                
+                <div className="flex items-center gap-2">
+                  <select
+                    value={project.status}
+                    onChange={(e) => updateProjectStatus(project.id, e.target.value as Project['status'])}
+                    className={`text-xs font-medium px-2 py-1 rounded-md border-0 bg-gray-50 hover:bg-gray-100 cursor-pointer focus:ring-0 ${
+                      project.status === 'Active' ? 'text-green-600' :
+                      project.status === 'Planning' ? 'text-blue-600' :
+                      project.status === 'Completed' ? 'text-gray-500' : 'text-amber-600'
+                    }`}
+                  >
+                    <option value="Planning">Planning</option>
+                    <option value="Active">Active</option>
+                    <option value="Paused">Paused</option>
+                    <option value="Completed">Completed</option>
+                  </select>
                 </div>
               </div>
-              <select
-                value={project.status}
-                onChange={(e) => handleUpdateStatus(project.id, e.target.value as Project['status'])}
-                className={`text-xs font-medium px-2 py-1 rounded-md border-0 bg-gray-50 hover:bg-gray-100 cursor-pointer focus:ring-0 ${
-                  project.status === 'Active' ? 'text-green-600' :
-                  project.status === 'Planning' ? 'text-blue-600' :
-                  project.status === 'Completed' ? 'text-gray-500' : 'text-amber-600'
-                }`}
-              >
-                <option value="Planning">Planning</option>
-                <option value="Active">Active</option>
-                <option value="Paused">Paused</option>
-                <option value="Completed">Completed</option>
-              </select>
+              
+              <p className="text-sm text-gray-500 mb-6 line-clamp-2 h-10">
+                {project.description}
+              </p>
             </div>
-            
-            <p className="text-sm text-gray-500 mb-6 line-clamp-2 h-10">
-              {project.description}
-            </p>
 
-            {/* Interactive Progress Bar */}
-            <div className="space-y-2 mt-auto">
-              <div className="flex justify-between text-xs font-medium text-gray-600">
-                <span>Progress</span>
-                <span>{project.progress}%</span>
-              </div>
-              <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className={`absolute top-0 left-0 h-full transition-all duration-300 ${
-                    project.progress === 100 ? 'bg-green-500' : 'bg-blue-600'
-                  }`}
-                  style={{ width: `${project.progress}%` }}
+            {/* Interactive Progress Bar & Footer Actions */}
+            <div>
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-xs font-medium text-gray-600">
+                  <span>Progress</span>
+                  <span>{project.progress}%</span>
+                </div>
+                <div className="relative h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute top-0 left-0 h-full transition-all duration-300 ${
+                      project.progress === 100 ? 'bg-green-500' : 'bg-blue-600'
+                    }`}
+                    style={{ width: `${project.progress}%` }}
+                  />
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={project.progress}
+                  onChange={(e) => updateProjectProgress(project.id, parseInt(e.target.value))}
+                  className="w-full h-2 cursor-ew-resize opacity-0 absolute inset-x-0"
+                  title="Drag to update progress"
                 />
               </div>
-              {/* Invisible range slider layered over the progress bar for interactivity */}
-              <input 
-                type="range" 
-                min="0" 
-                max="100" 
-                value={project.progress}
-                onChange={(e) => handleUpdateProgress(project.id, parseInt(e.target.value))}
-                className="w-full h-2 absolute bottom-5 opacity-0 cursor-ew-resize"
-                title="Drag to update progress"
-              />
+
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <span className="text-[11px] text-gray-400 font-mono">ID: {project.id}</span>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                  <button
+                    onClick={() => handleOpenEdit(project)}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                    title="Edit Project"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => deleteProject(project.id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                    title="Delete Project"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* ── New Project Modal ──────────────────────────────────────── */}
+      {projects.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-sm text-gray-500">
+          No projects found. Create one to get started!
+        </div>
+      )}
+
+      {/* ── Project Modal (Create / Edit) ───────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Create New Project</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingProject ? 'Edit Project' : 'Create New Project'}
+              </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -143,15 +177,15 @@ export function ProjectsPage() {
               </button>
             </div>
             
-            <form onSubmit={handleCreateProject} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Project Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Q4 Marketing Campaign"
-                  value={newProject.name}
-                  onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -161,22 +195,23 @@ export function ProjectsPage() {
                 <textarea
                   placeholder="Briefly describe the goals of this project..."
                   rows={3}
-                  value={newProject.description}
-                  onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Initial Status</label>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Status</label>
                 <select
-                  value={newProject.status}
-                  onChange={(e) => setNewProject({...newProject, status: e.target.value as any})}
+                  value={formData.status}
+                  onChange={(e) => setFormData({...formData, status: e.target.value as any})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 >
                   <option value="Planning">Planning</option>
                   <option value="Active">Active</option>
                   <option value="Paused">Paused</option>
+                  <option value="Completed">Completed</option>
                 </select>
               </div>
 
@@ -192,7 +227,7 @@ export function ProjectsPage() {
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
                 >
-                  Create Project
+                  {editingProject ? 'Save Changes' : 'Create Project'}
                 </button>
               </div>
             </form>

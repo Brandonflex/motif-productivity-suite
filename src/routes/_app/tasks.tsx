@@ -1,36 +1,67 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useWorkspace } from '@/context/WorkspaceContext';
+import { X, Pencil, Trash2 } from 'lucide-react';
+import { useWorkspace, Task } from '@/context/WorkspaceContext';
 
 export function TasksPage() {
-  const { tasks, addTask, toggleTaskStatus } = useWorkspace();
+  const { tasks, addTask, updateTask, deleteTask, toggleTaskStatus } = useWorkspace();
   const [filter, setFilter] = useState<'All' | 'In Progress' | 'Pending' | 'Completed'>('All');
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  
+  const [formData, setFormData] = useState({
     title: '',
     project: '',
     priority: 'Medium' as 'High' | 'Medium' | 'Low',
     dueDate: ''
   });
 
-  const handleCreateTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTask.title.trim()) return;
+  const handleOpenCreate = () => {
+    setEditingTask(null);
+    setFormData({ title: '', project: '', priority: 'Medium', dueDate: '' });
+    setIsModalOpen(true);
+  };
 
-    addTask({
-      title: newTask.title,
-      project: newTask.project || 'General',
-      priority: newTask.priority,
-      status: 'Pending',
-      dueDate: newTask.dueDate 
-        ? new Date(newTask.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
-        : 'No Date'
+  const handleOpenEdit = (task: Task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      project: task.project,
+      priority: task.priority,
+      dueDate: task.dueDate !== 'No Date' ? task.dueDate : ''
     });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim()) return;
+
+    const formattedDate = formData.dueDate 
+      ? new Date(formData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
+      : 'No Date';
+
+    if (editingTask) {
+      // Update existing task
+      updateTask(editingTask.id, {
+        title: formData.title,
+        project: formData.project || 'General',
+        priority: formData.priority,
+        dueDate: formattedDate
+      });
+    } else {
+      // Create new task
+      addTask({
+        title: formData.title,
+        project: formData.project || 'General',
+        priority: formData.priority,
+        status: 'Pending',
+        dueDate: formattedDate
+      });
+    }
 
     setIsModalOpen(false);
-    setNewTask({ title: '', project: '', priority: 'Medium', dueDate: '' });
   };
 
   const filteredTasks = filter === 'All' ? tasks : tasks.filter(t => t.status === filter);
@@ -43,7 +74,7 @@ export function TasksPage() {
           <p className="text-sm text-gray-500 mt-1">Track and manage action items across your workspace.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreate}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
         >
           + New Task
@@ -76,11 +107,12 @@ export function TasksPage() {
               <th className="py-3 px-4">Priority</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4 text-right">Due Date</th>
+              <th className="py-3 px-4 text-right w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredTasks.map(task => (
-              <tr key={task.id} className="hover:bg-gray-50/50 transition">
+              <tr key={task.id} className="hover:bg-gray-50/50 transition group">
                 <td className="py-3 px-4">
                   <input
                     type="checkbox"
@@ -106,18 +138,45 @@ export function TasksPage() {
                   <span className="text-xs font-medium text-gray-600">{task.status}</span>
                 </td>
                 <td className="py-3 px-4 text-right text-gray-500 font-mono text-xs">{task.dueDate}</td>
+                <td className="py-3 px-4 text-right">
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => handleOpenEdit(task)}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                      title="Edit Task"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteTask(task.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
+                      title="Delete Task"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
+            {filteredTasks.length === 0 && (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-sm text-gray-500">
+                  No tasks found in this view.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* ── New Task Modal ──────────────────────────────────────── */}
+      {/* ── Task Modal (Create / Edit) ─────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-900">Create New Task</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingTask ? 'Edit Task' : 'Create New Task'}
+              </h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 transition"
@@ -126,15 +185,15 @@ export function TasksPage() {
               </button>
             </div>
             
-            <form onSubmit={handleCreateTask} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Task Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Write documentation..."
-                  value={newTask.title}
-                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -144,8 +203,8 @@ export function TasksPage() {
                 <input
                   type="text"
                   placeholder="e.g. Engineering"
-                  value={newTask.project}
-                  onChange={(e) => setNewTask({...newTask, project: e.target.value})}
+                  value={formData.project}
+                  onChange={(e) => setFormData({...formData, project: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -154,8 +213,8 @@ export function TasksPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Priority</label>
                   <select
-                    value={newTask.priority}
-                    onChange={(e) => setNewTask({...newTask, priority: e.target.value as any})}
+                    value={formData.priority}
+                    onChange={(e) => setFormData({...formData, priority: e.target.value as any})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   >
                     <option value="Low">Low</option>
@@ -168,8 +227,8 @@ export function TasksPage() {
                   <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Due Date</label>
                   <input
                     type="date"
-                    value={newTask.dueDate}
-                    onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
+                    value={formData.dueDate}
+                    onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -187,7 +246,7 @@ export function TasksPage() {
                   type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
                 >
-                  Create Task
+                  {editingTask ? 'Save Changes' : 'Create Task'}
                 </button>
               </div>
             </form>
