@@ -29,6 +29,8 @@ interface WorkspaceContextType {
   deleteProject: (id: string) => void;
   updateProjectProgress: (id: string, progress: number) => void;
   updateProjectStatus: (id: string, status: Project['status']) => void;
+  exportData: () => void;
+  resetWorkspace: () => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -120,6 +122,26 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     setProjects(prev => prev.map(p => p.id === id ? { ...p, status } : p));
   };
 
+  const exportData = () => {
+    const data = { tasks, projects, version: '1.0', exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `motif-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const resetWorkspace = () => {
+    if (window.confirm('Are you sure you want to reset your workspace? All custom tasks and projects will be replaced with default demo data.')) {
+      setTasks(initialTasks);
+      setProjects(initialProjects);
+      localStorage.removeItem(STORAGE_KEY_TASKS);
+      localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    }
+  };
+
   return (
     <WorkspaceContext.Provider value={{
       tasks,
@@ -132,7 +154,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
       updateProject,
       deleteProject,
       updateProjectProgress,
-      updateProjectStatus
+      updateProjectStatus,
+      exportData,
+      resetWorkspace
     }}>
       {children}
     </WorkspaceContext.Provider>
