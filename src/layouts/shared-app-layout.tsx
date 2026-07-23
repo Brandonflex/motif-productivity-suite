@@ -8,7 +8,7 @@
  * content apps don't need this at all.
  */
 import React, { createContext, useContext } from 'react'
-import { Shell } from '../Shell'
+import { Shell } from '../components/Shell'
 import { AppSidebarShell } from '../components/AppSidebarShell'
 
 export type SharedLayoutContextValue = {

@@ -20,11 +20,17 @@ export interface Project {
 interface WorkspaceContextType {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id'>) => void;
+  updateTask: (id: string, task: Partial<Omit<Task, 'id'>>) => void;
+  deleteTask: (id: string) => void;
   toggleTaskStatus: (id: string) => void;
   projects: Project[];
   addProject: (project: Omit<Project, 'id' | 'progress'>) => void;
+  updateProject: (id: string, project: Partial<Omit<Project, 'id'>>) => void;
+  deleteProject: (id: string) => void;
   updateProjectProgress: (id: string, progress: number) => void;
   updateProjectStatus: (id: string, status: Project['status']) => void;
+  exportData: () => void;
+  resetWorkspace: () => void;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
@@ -69,6 +75,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     setTasks(prev => [newTask, ...prev]);
   };
 
+  const updateTask = (id: string, taskData: Partial<Omit<Task, 'id'>>) => {
+    setTasks(prev =>
+      prev.map(task => (task.id === id ? { ...task, ...taskData } : task))
+    );
+  };
+
+  const deleteTask = (id: string) => {
+    setTasks(prev => prev.filter(task => task.id !== id));
+  };
+
   const toggleTaskStatus = (id: string) => {
     setTasks(prev =>
       prev.map(task =>
@@ -88,6 +104,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     setProjects(prev => [newProject, ...prev]);
   };
 
+  const updateProject = (id: string, projectData: Partial<Omit<Project, 'id'>>) => {
+    setProjects(prev =>
+      prev.map(project => (project.id === id ? { ...project, ...projectData } : project))
+    );
+  };
+
+  const deleteProject = (id: string) => {
+    setProjects(prev => prev.filter(project => project.id !== id));
+  };
+
   const updateProjectProgress = (id: string, progress: number) => {
     setProjects(prev => prev.map(p => p.id === id ? { ...p, progress } : p));
   };
@@ -96,15 +122,41 @@ export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.El
     setProjects(prev => prev.map(p => p.id === id ? { ...p, status } : p));
   };
 
+  const exportData = () => {
+    const data = { tasks, projects, version: '1.0', exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `motif-workspace-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const resetWorkspace = () => {
+    if (window.confirm('Are you sure you want to reset your workspace? All custom tasks and projects will be replaced with default demo data.')) {
+      setTasks(initialTasks);
+      setProjects(initialProjects);
+      localStorage.removeItem(STORAGE_KEY_TASKS);
+      localStorage.removeItem(STORAGE_KEY_PROJECTS);
+    }
+  };
+
   return (
     <WorkspaceContext.Provider value={{
       tasks,
       addTask,
+      updateTask,
+      deleteTask,
       toggleTaskStatus,
       projects,
       addProject,
+      updateProject,
+      deleteProject,
       updateProjectProgress,
-      updateProjectStatus
+      updateProjectStatus,
+      exportData,
+      resetWorkspace
     }}>
       {children}
     </WorkspaceContext.Provider>

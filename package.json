@@ -15,9 +15,13 @@
     "lint": "bun run lint:types && bun run lint:js && bun run lint:css && bun run check:css-vars && bun run check:css-classes"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react": "^5.2.0",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.22",
+    "tailwindcss": "^3.4.19",
     "typescript": "~6.0.2",
     "vite": "^5.4.11"
   },
@@ -28,13 +32,11 @@
     "@hookform/resolvers": "^5.4.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
-    "autoprefixer": "10.4.16",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "framer-motion": "^12.40.0",
     "glob": "^13.0.6",
     "lucide-react": "^1.17.0",
-    "postcss": "8.4.31",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.78.0",
@@ -46,7 +48,6 @@
     "stylelint": "^17.13.0",
     "stylelint-config-standard": "^40.0.0",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.4.3"
   }
