@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Pencil, Trash2 } from 'lucide-react';
-import { useWorkspace, Task } from '@/context/WorkspaceContext';
+import { formatTaskDueDate, useWorkspace, Task } from '@/context/WorkspaceContext';
 
 export function TasksPage() {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskStatus } = useWorkspace();
@@ -29,7 +29,7 @@ export function TasksPage() {
       title: task.title,
       project: task.project,
       priority: task.priority,
-      dueDate: task.dueDate !== 'No Date' ? task.dueDate : ''
+      dueDate: task.dueDate
     });
     setIsModalOpen(true);
   };
@@ -38,17 +38,13 @@ export function TasksPage() {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    const formattedDate = formData.dueDate 
-      ? new Date(formData.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) 
-      : 'No Date';
-
     if (editingTask) {
       // Update existing task
       updateTask(editingTask.id, {
         title: formData.title,
         project: formData.project || 'General',
         priority: formData.priority,
-        dueDate: formattedDate
+        dueDate: formData.dueDate
       });
     } else {
       // Create new task
@@ -57,7 +53,7 @@ export function TasksPage() {
         project: formData.project || 'General',
         priority: formData.priority,
         status: 'Pending',
-        dueDate: formattedDate
+        dueDate: formData.dueDate
       });
     }
 
@@ -137,7 +133,7 @@ export function TasksPage() {
                 <td className="py-3 px-4">
                   <span className="text-xs font-medium text-gray-600">{task.status}</span>
                 </td>
-                <td className="py-3 px-4 text-right text-gray-500 font-mono text-xs">{task.dueDate}</td>
+                <td className="py-3 px-4 text-right text-gray-500 font-mono text-xs">{formatTaskDueDate(task.dueDate)}</td>
                 <td className="py-3 px-4 text-right">
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
                     <button
@@ -187,8 +183,9 @@ export function TasksPage() {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Task Title</label>
+                <label htmlFor="task-title" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Task Title</label>
                 <input
+                  id="task-title"
                   type="text"
                   required
                   placeholder="e.g. Write documentation..."
@@ -199,8 +196,9 @@ export function TasksPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Project Link</label>
+                <label htmlFor="task-project" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Project Link</label>
                 <input
+                  id="task-project"
                   type="text"
                   placeholder="e.g. Engineering"
                   value={formData.project}
@@ -211,8 +209,9 @@ export function TasksPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Priority</label>
+                  <label htmlFor="task-priority" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Priority</label>
                   <select
+                    id="task-priority"
                     value={formData.priority}
                     onChange={(e) => setFormData({...formData, priority: e.target.value as any})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -224,8 +223,9 @@ export function TasksPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Due Date</label>
+                  <label htmlFor="task-due-date" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Due Date</label>
                   <input
+                    id="task-due-date"
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
