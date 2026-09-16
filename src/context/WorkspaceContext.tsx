@@ -37,10 +37,41 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 const STORAGE_KEY_TASKS = 'motif_tasks_v1';
 const STORAGE_KEY_PROJECTS = 'motif_projects_v1';
+const LEGACY_DATE_YEAR = 2026;
+
+export function formatTaskDueDate(value: string) {
+  if (!value) return 'No Date';
+
+  const date = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function normalizeDueDate(value: string) {
+  if (!value || value === 'No Date') return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+
+  const legacyMatch = value.match(/^([A-Za-z]+)\s+(\d{1,2})$/);
+  if (!legacyMatch) return '';
+
+  const legacyDate = new Date(`${legacyMatch[1]} ${legacyMatch[2]}, ${LEGACY_DATE_YEAR} 00:00:00 UTC`);
+  return Number.isNaN(legacyDate.getTime())
+    ? ''
+    : legacyDate.toISOString().slice(0, 10);
+}
+
+function normalizeTask(task: Task): Task {
+  return { ...task, dueDate: normalizeDueDate(task.dueDate) };
+}
 
 const initialTasks: Task[] = [
-  { id: '1', title: 'Finalize Q3 roadmap presentation', project: 'Strategy', priority: 'High', status: 'In Progress', dueDate: 'Jul 24' },
-  { id: '2', title: 'Review design system tokens', project: 'Design System', priority: 'Medium', status: 'Pending', dueDate: 'Jul 26' },
+  { id: '1', title: 'Finalize Q3 roadmap presentation', project: 'Strategy', priority: 'High', status: 'In Progress', dueDate: '2026-07-24' },
+  { id: '2', title: 'Review design system tokens', project: 'Design System', priority: 'Medium', status: 'Pending', dueDate: '2026-07-26' },
 ];
 
 const initialProjects: Project[] = [
@@ -51,7 +82,7 @@ const initialProjects: Project[] = [
 export function WorkspaceProvider({ children }: { children: ReactNode }): JSX.Element {
   const [tasks, setTasks] = useState<Task[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_TASKS);
-    return saved ? JSON.parse(saved) : initialTasks;
+    return saved ? JSON.parse(saved).map(normalizeTask) : initialTasks;
   });
 
   const [projects, setProjects] = useState<Project[]>(() => {

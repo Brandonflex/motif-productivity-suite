@@ -1,4 +1,4 @@
-import { useWorkspace } from '@/context/WorkspaceContext';
+import { formatTaskDueDate, useWorkspace } from '@/context/WorkspaceContext';
 import { FolderKanban, CheckSquare, Activity, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -65,7 +65,7 @@ export function DashboardPage() {
                 <p className={`font-medium text-sm ${task.status === 'Completed' ? 'line-through text-gray-400' : 'text-gray-900'}`}>
                   {task.title}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{task.project} • {task.dueDate}</p>
+                <p className="text-xs text-gray-500 mt-1">{task.project} • {formatTaskDueDate(task.dueDate)}</p>
               </div>
               <span className={`px-2.5 py-1 text-[11px] font-medium rounded-full ${
                 task.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'

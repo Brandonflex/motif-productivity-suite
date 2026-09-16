@@ -179,8 +179,9 @@ export function ProjectsPage() {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Project Name</label>
+                <label htmlFor="project-name" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Project Name</label>
                 <input
+                  id="project-name"
                   type="text"
                   required
                   placeholder="e.g. Q4 Marketing Campaign"
@@ -191,8 +192,9 @@ export function ProjectsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Description</label>
+                <label htmlFor="project-description" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Description</label>
                 <textarea
+                  id="project-description"
                   placeholder="Briefly describe the goals of this project..."
                   rows={3}
                   value={formData.description}
@@ -202,8 +204,9 @@ export function ProjectsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Status</label>
+                <label htmlFor="project-status" className="block text-xs font-semibold text-gray-700 uppercase mb-1">Status</label>
                 <select
+                  id="project-status"
                   value={formData.status}
                   onChange={(e) => setFormData({...formData, status: e.target.value as any})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
