@@ -4,6 +4,7 @@ module.exports = {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: ['md:flex', 'md:relative'],
   theme: {
     extend: {
       colors: {
