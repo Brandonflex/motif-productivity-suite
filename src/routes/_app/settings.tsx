@@ -37,7 +37,7 @@ export function SettingsPage() {
           <div className="flex items-center justify-between pt-6">
             <div>
               <h3 className="text-sm font-semibold text-red-600">Reset Workspace Data</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Clear all modifications and restore the original template data.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Clear your saved changes and restore the default sample workspace content.</p>
             </div>
             <button
               onClick={resetWorkspace}

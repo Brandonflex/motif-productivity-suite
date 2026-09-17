@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-app",
+  "name": "motif-productivity-suite",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,20 +10,28 @@
     "lint:css": "stylelint \"src/**/*.css\" --fix --quiet",
     "lint:js": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "lint:types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "check:css-vars": "node scripts/check-css-variables.js",
     "check:css-classes": "node scripts/check-css-classes.js",
-    "lint": "bun run lint:types && bun run lint:js && bun run lint:css && bun run check:css-vars && bun run check:css-classes"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run lint:types && npm run test && npm run build",
+    "lint": "npm run lint:types && npm run lint:js && npm run lint:css && npm run check:css-vars && npm run check:css-classes"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.5.4",
+    "jsdom": "^27.0.0",
     "postcss": "^8.5.22",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.2",
-    "vite": "^5.4.11"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   },
   "dependencies": {
     "@blinkdotnew/sdk": "^2.6.2",
