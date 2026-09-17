@@ -1,11 +1,7 @@
 /**
- * SaaS app chrome (sidebar + main) — OPT-IN, not the default.
- * The template root (__root.tsx) is full-bleed by default. To use this, ADD a
- * `src/routes/_app.tsx` pathless layout route that renders <SharedAppLayout>
- * and wrap pages under `src/routes/_app/` in it — give it children, since a
- * childless `_app.tsx` collides with the root index route. Do not wrap
- * individual pages in Shell or duplicate sidebars/top bars. Landing/marketing/
- * content apps don't need this at all.
+ * Shared app shell for routes that need the main productivity workspace layout.
+ * Keep the sidebar and top chrome consistent across the app without duplicating
+ * structure on each page.
  */
 import React, { createContext, useContext } from 'react'
 import { Shell } from '../components/Shell'
