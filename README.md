@@ -1,13 +1,13 @@
-# Motif Productivity Suite
+# Modern Productivity Suite
 
-[![Quality Pipeline](https://github.com/<Brandonflex >/<motif-productivity-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>/actions)
+[![Quality Pipeline](https://github.com/Brandonflex/motif-productivity-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/Brandonflex/motif-productivity-suite/actions)
 ![React](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-5.4-purple?logo=vite)
 
 > A high-performance, responsive productivity suite engineered for fluid visual interaction, robust state management, and real-time execution.
 
-[**Live Demo**](https://<YOUR_REPO_NAME>.vercel.app) | [**Report Issue**](https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>/issues)
+[**Live Demo**](https://motif-productivity-suite-qnixzhndz-brandonflex108-4814.vercel.app/) | [**Report Issue**](https://github.com/Brandonflex/motif-productivity-suite/issues)
 
 ---
 
@@ -46,7 +46,7 @@ Quality and stability are enforced programmatically rather than manually. Every 
 
 ## AI-Assisted Workflow & Speed Strategy
 
-This project was developed leveraging modern **AI coding agents** (Windsurf / Codeium / local LLMs) to accelerate prototyping and component generation. 
+This project was developed leveraging modern **AI coding agents** to accelerate prototyping and component generation. 
 
 - **Architectural Guardrails:** While AI tools handled repetitive setup, human oversight enforced clean separation of concerns, strict component interfaces, and modular layout structures.
 - **Safety Net:** The automated CI pipeline acts as the ultimate filter, guaranteeing that AI-generated code never breaks type boundaries, introduces invalid CSS variables, or fails production builds.
@@ -63,5 +63,5 @@ This project was developed leveraging modern **AI coding agents** (Windsurf / Co
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/](https://github.com/)<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git
-   cd <YOUR_REPO_NAME>
+   git clone [https://github.com/Brandonflex/motif-productivity-suite.git](https://github.com/Brandonflex/motif-productivity-suite.git)
+   cd motif-productivity-suite
