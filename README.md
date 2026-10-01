@@ -5,7 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-5.4-purple?logo=vite)
 
-> A high-performance, responsive productivity suite engineered for fluid visual interaction, robust state management, and real-time execution.
+> A high-performance and responsive productivity suite mainly engineered for fluid visual interaction, robust state management, and real-time execution.
 
 [**Live Demo**](https://motif-productivity-suite-qnixzhndz-brandonflex108-4814.vercel.app/) | [**Report Issue**](https://github.com/Brandonflex/motif-productivity-suite/issues)
 
