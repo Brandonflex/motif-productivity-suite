@@ -23,6 +23,12 @@ createRoot(container).render(
       </BrowserRouter>
       <Toaster
         position="bottom-right"
+        containerStyle={{
+          // Clear of the home indicator, and never wider than a small phone.
+          bottom: 'env(safe-area-inset-bottom, 0px)',
+          insetInline: '0.75rem',
+          maxWidth: 'calc(100vw - 1.5rem)',
+        }}
         toastOptions={{
           duration: 4000,
           style: {

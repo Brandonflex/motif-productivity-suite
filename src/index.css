@@ -77,6 +77,57 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
+   Devices: touch, notches and hover-less pointers.
+
+   Everything below is a *fallback*, not a feature: the layout works with none
+   of it applied. It exists because a phone is not a small desktop — it has
+   thumbs, safe areas, and no hover state at all — and a desktop is not a big
+   phone, so density should not be sacrificed for targets nobody will tap.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  /* Notch and home-indicator padding, as utilities rather than inline styles. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Touch: no stray double-tap zoom on controls, no grey flash on tap. */
+  @media (pointer: coarse) {
+    button,
+    a,
+    [role='button'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch'],
+    [role='tab'] {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+
+  /* Hover-less pointers: lift effects should not stick to the last tap. */
+  @media (hover: none) {
+    .hover-lift:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
    Motion & depth layer
    ---------------------------------------------------------------------------
    The suite is meant to feel alive rather than merely functional, so the

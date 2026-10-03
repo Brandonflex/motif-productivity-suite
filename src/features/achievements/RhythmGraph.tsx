@@ -90,7 +90,7 @@ export function RhythmGraph({ history, weeks = 18 }: { history: ActivityDay[]; w
                           onClick={() => setFocused(day.date === focused ? null : day.date)}
                           aria-label={`${day.date}: ${detail}`}
                           className={cn(
-                            'cell-reveal h-3.5 w-3.5 rounded-[4px] border transition-transform hover:scale-125 focus-visible:scale-125',
+                            'cell-reveal h-3.5 w-3.5 rounded-[4px] border transition-transform hover:scale-125 focus-visible:scale-125 coarse:h-5 coarse:w-5',
                             level === 0 && active && 'border-info/60 bg-info/20',
                             level === 0 && !active && day.rest && 'border-border bg-transparent',
                             level === 0 && !active && !day.rest && 'border-border/60 bg-muted/40',

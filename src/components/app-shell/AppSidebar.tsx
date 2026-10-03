@@ -32,6 +32,8 @@ import { MotifMark } from '@/components/brand/MotifMark'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useAchievements } from '@/features/achievements/useAchievements'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
+import { ETHOS_SHORT } from '@/content/story'
+import { useShellActions } from './shell-actions'
 import { ThemeCycleButton, ThemeToggle } from './ThemeToggle'
 
 /** Stable id so the collapse controls can describe what they toggle. */
@@ -53,7 +55,7 @@ function NavItem({ item, collapsed }: { item: NavItemDef; collapsed: boolean }) 
       end={item.end}
       className={({ isActive }) =>
         cn(
-          'mx-1 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors',
+          'mx-1 flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors coarse:py-3',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring',
           collapsed && 'mx-auto w-9 justify-center px-0',
           isActive
@@ -95,6 +97,7 @@ export function AppSidebar() {
   const { collapsed, setCollapsed } = useAppShell()
   const { stats } = useWorkspace()
   const { xp: rank, streak } = useAchievements()
+  const { openAbout } = useShellActions()
 
   useEffect(() => {
     writeSidebarCollapsed(collapsed)
@@ -181,6 +184,19 @@ export function AppSidebar() {
                 <TooltipContent side="right">Expand sidebar</TooltipContent>
               </Tooltip>
               <ThemeCycleButton />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={openAbout}
+                    aria-label="Why Motif exists — the story"
+                    className="rounded-md p-1 transition-opacity hover:opacity-80 coarse:p-2.5"
+                  >
+                    <MotifMark size={26} animated={false} className="opacity-90" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Why Motif exists</TooltipContent>
+              </Tooltip>
             </div>
           ) : (
             <div className="space-y-2">
@@ -206,8 +222,17 @@ export function AppSidebar() {
                 <ThemeToggle />
               </div>
               <p className="flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground">
-                <Sparkles className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
-                Local-first: your workspace never leaves this browser. Press ⌘K for anything.
+                <Sparkles className="mt-px h-3 w-3 shrink-0 text-brand" aria-hidden="true" />
+                <span>
+                  {ETHOS_SHORT}{' '}
+                  <button
+                    type="button"
+                    onClick={openAbout}
+                    className="font-medium text-primary underline-offset-2 hover:underline"
+                  >
+                    Read why
+                  </button>
+                </span>
               </p>
               <Button
                 type="button"
@@ -216,7 +241,7 @@ export function AppSidebar() {
                 aria-expanded
                 aria-controls={SIDEBAR_ID}
                 onClick={() => setCollapsed(true)}
-                className="w-full justify-start gap-2 px-2 text-muted-foreground hover:text-foreground"
+                className="w-full justify-start gap-2 px-2 text-muted-foreground hover:text-foreground coarse:py-3"
               >
                 <PanelLeft className="h-4 w-4" aria-hidden="true" />
                 Collapse sidebar

@@ -314,7 +314,7 @@ export function TasksPage() {
               {stats.overdueTasks > 0 && ` · ${stats.overdueTasks} overdue`}
             </PageDescription>
           </div>
-          <PageActions>
+          <PageActions className="flex-wrap gap-2">
             <Button onClick={openCreate} size="sm" aria-keyshortcuts="n">
               <Plus className="h-4 w-4" aria-hidden="true" />
               New task
@@ -322,7 +322,7 @@ export function TasksPage() {
           </PageActions>
         </PageHeaderBar>
 
-        <PageBody className="mx-auto w-full max-w-6xl">
+        <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-6xl">
           {/* Toolbar */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1 lg:max-w-sm">
@@ -428,7 +428,7 @@ export function TasksPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-7 text-xs"
+                  className="h-7 text-xs coarse:h-10"
                   disabled={selected.length === visibleTasks.length || visibleTasks.length === 0}
                   onClick={selectAllVisible}
                 >
@@ -665,7 +665,7 @@ export function TasksPage() {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground coarse:h-11 coarse:w-11"
                                         onClick={() => openEdit(task)}
                                         aria-label={`Edit “${task.title}”`}
                                       >
@@ -680,7 +680,7 @@ export function TasksPage() {
                                       <Button
                                         variant="ghost"
                                         size="sm"
-                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive coarse:h-11 coarse:w-11"
                                         onClick={() => handleDelete(task)}
                                         aria-label={`Delete “${task.title}”`}
                                       >

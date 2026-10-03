@@ -165,7 +165,7 @@ export function TodayPage() {
         </PageActions>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-6xl">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-6xl">
         {overCapacity && (
           <Card className="border-warning/40 bg-warning/5">
             <CardContent className="flex items-start gap-3 pt-5">
@@ -309,16 +309,31 @@ export function TodayPage() {
                             <div className="flex shrink-0 items-center gap-1">
                               {!isDone && (
                                 <>
-                                  <Button size="sm" variant="ghost" onClick={() => setFocusTaskId(task.id)}>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="coarse:h-11"
+                                    onClick={() => setFocusTaskId(task.id)}
+                                  >
                                     Focus
                                   </Button>
-                                  <Button size="sm" variant="ghost" onClick={() => snoozeTask(task.id, 1)}>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="coarse:h-11"
+                                    onClick={() => snoozeTask(task.id, 1)}
+                                  >
                                     +1d
                                   </Button>
                                 </>
                               )}
                               {isDone && (
-                                <Button size="sm" variant="ghost" onClick={() => setTaskStatus(task.id, 'Pending')}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="coarse:h-11"
+                                  onClick={() => setTaskStatus(task.id, 'Pending')}
+                                >
                                   Reopen
                                 </Button>
                               )}

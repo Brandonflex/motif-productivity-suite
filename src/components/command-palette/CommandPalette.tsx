@@ -7,6 +7,7 @@ import {
   Compass,
   Download,
   FolderKanban,
+  Heart,
   Inbox,
   LineChart,
   Moon,
@@ -43,9 +44,11 @@ interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreateTask: () => void
+  /** Opens the "why Motif exists" story. */
+  onOpenAbout: () => void
 }
 
-export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, onCreateTask, onOpenAbout }: CommandPaletteProps) {
   const navigate = useNavigate()
   const { tasks, toggleTaskStatus } = useWorkspace()
   const { resolved, setPreference } = useTheme()
@@ -90,11 +93,30 @@ export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPale
           onOpenChange(false)
         },
       },
-      { id: 'bring-backup', label: 'Export workspace backup', group: 'Workspace', icon: Download, keywords: 'json download', run: go('/settings') },
+      {
+        id: 'bring-backup',
+        label: 'Export workspace backup',
+        group: 'Workspace',
+        icon: Download,
+        keywords: 'json download',
+        run: go('/settings'),
+      },
+      {
+        id: 'about',
+        label: 'Why Motif exists',
+        hint: 'The story',
+        group: 'Workspace',
+        icon: Heart,
+        keywords: 'about story brand maker brandon free local no subscription',
+        run: () => {
+          onOpenChange(false)
+          onOpenAbout()
+        },
+      },
     ]
 
     return base
-  }, [navigate, onOpenChange, onCreateTask, resolved, setPreference])
+  }, [navigate, onOpenChange, onCreateTask, onOpenAbout, resolved, setPreference])
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -152,7 +174,7 @@ export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPale
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="top-[12%] max-w-xl translate-y-0 gap-0 p-0">
+      <DialogContent className="top-[8dvh] max-h-[84dvh] w-[calc(100%-1.5rem)] max-w-xl translate-y-0 gap-0 overflow-hidden p-0 sm:top-[12%] sm:w-full">
         <DialogTitle className="sr-only">Command palette</DialogTitle>
         <DialogDescription className="sr-only">
           Search actions and tasks, then press Enter. Arrow keys move the highlight.
@@ -170,7 +192,9 @@ export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPale
           />
         </div>
 
-        <ul ref={listRef} role="listbox" aria-label="Commands" className="max-h-80 overflow-y-auto p-1">
+        {/* Height in dvh: with the on-screen keyboard up, `max-h-80` would
+            push the last few results under it. */}
+        <ul ref={listRef} role="listbox" aria-label="Commands" className="max-h-[min(20rem,52dvh)] overflow-y-auto p-1">
           {results.length === 0 && (
             <li className="px-3 py-8 text-center text-sm text-muted-foreground">Nothing matches “{query}”.</li>
           )}
@@ -186,7 +210,7 @@ export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPale
                   onMouseEnter={() => setActiveIndex(index)}
                   onClick={command.run}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm',
+                    'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm coarse:py-3',
                     isActive ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-muted',
                   )}
                 >

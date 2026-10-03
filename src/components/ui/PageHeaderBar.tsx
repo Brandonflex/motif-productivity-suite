@@ -11,7 +11,14 @@ import { PageHeader } from '@blinkdotnew/ui'
  */
 export function PageHeaderBar({ children }: { children: ReactNode }) {
   return (
-    <PageHeader className="sticky top-14 z-20 border-border bg-background/95 backdrop-blur md:top-0">
+    <PageHeader
+      /*
+       * `flex-wrap` earns its place on a phone: a long title and two or three
+       * actions cannot share 360px, and a squeezed title is worse than a
+       * second row. Gutters track the viewport for the same reason.
+       */
+      className="sticky top-14 z-20 flex-wrap gap-x-4 gap-y-2 border-border bg-background/95 px-4 py-3 backdrop-blur sm:px-6 sm:py-4 md:top-0"
+    >
       {children}
     </PageHeader>
   )

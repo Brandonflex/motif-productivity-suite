@@ -1,3 +1,4 @@
+import plugin from 'tailwindcss/plugin'
 import animate from 'tailwindcss-animate'
 
 /** Maps a design token (defined in src/styles/tokens.css) to a Tailwind colour. */
@@ -123,5 +124,21 @@ export default {
       },
     },
   },
-  plugins: [animate],
+  plugins: [
+    animate,
+    /**
+     * Device tiers.
+     *
+     * `coarse:` is for fingers (no fine pointer) and `fine:` for mice: a touch
+     * target wants ~44px while a mouse wants density, and hover-only flourishes
+     * should not exist at all where there is no hover to trigger them. Tailwind
+     * ships neither, and media-query guessing through `sm:`/`lg:` confuses
+     * screen size with input device — a tablet is wide *and* finger-driven.
+     */
+    plugin(({ addVariant }) => {
+      addVariant('coarse', '@media (pointer: coarse)')
+      addVariant('fine', '@media (pointer: fine)')
+      addVariant('hoverable', '@media (hover: hover)')
+    }),
+  ],
 }

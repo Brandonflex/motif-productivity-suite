@@ -163,11 +163,15 @@ export function FocusTimer({ className, presetTaskId }: { className?: string; pr
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Button size="sm" onClick={() => setRunning((value) => !value)} className="gap-1.5">
-            {running ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
+          <Button size="sm" onClick={() => setRunning((value) => !value)} className="gap-1.5 coarse:h-11">
+            {running ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="h-4 w-4" aria-hidden="true" />
+            )}
             {running ? 'Pause' : 'Start'}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => reset(phase, false)} className="gap-1.5">
+          <Button size="sm" variant="outline" onClick={() => reset(phase, false)} className="gap-1.5 coarse:h-11">
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Reset
           </Button>

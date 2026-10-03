@@ -1,7 +1,10 @@
-import { Suspense, lazy, useCallback, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Shell } from '@/components/app-shell/Shell'
 import { AppSidebar } from '@/components/app-shell/AppSidebar'
+import { ShellActionsProvider } from '@/components/app-shell/ShellActions'
+import type { ShellActions } from '@/components/app-shell/shell-actions'
+import { AboutDialog } from '@/components/brand/AboutDialog'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { RouteFallback } from '@/components/feedback/RouteFallback'
 import { CommandPalette, useGlobalShortcuts } from '@/components/command-palette/CommandPalette'
@@ -56,13 +59,15 @@ function AppRoutes() {
 }
 
 /**
- * Global capture + command palette.
+ * Global capture, the command palette and the story.
  *
- * Both are mounted once, above the routes, so every view shares one ⌘K palette
- * and one capture field (Linear's model: the shortcut works everywhere, and it
- * always does the same thing).
+ * All three are mounted once, above the routes, so every view shares one ⌘K
+ * palette, one capture field and one "why does this exist" (Linear's model: the
+ * shortcut works everywhere and always does the same thing). They are handed
+ * down through `ShellActionsProvider`, which is what lets the *touch* header
+ * offer the same actions as the keyboard.
  */
-function GlobalCommands() {
+function AppChrome() {
   // Badges and rank-ups are celebrated from one place, so they fire wherever
   // the user happens to be when the work lands.
   useAchievementCelebrations()
@@ -71,16 +76,40 @@ function GlobalCommands() {
 
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [captureOpen, setCaptureOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
 
-  const openPalette = useCallback(() => setPaletteOpen(true), [])
-  const openCapture = useCallback(() => setCaptureOpen(true), [])
-  useGlobalShortcuts({ onPalette: openPalette, onCapture: openCapture })
+  const actions = useMemo<ShellActions>(
+    () => ({
+      openPalette: () => setPaletteOpen(true),
+      openCapture: () => setCaptureOpen(true),
+      openAbout: () => setAboutOpen(true),
+    }),
+    [],
+  )
+
+  useGlobalShortcuts({ onPalette: actions.openPalette, onCapture: actions.openCapture })
 
   return (
-    <>
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} onCreateTask={openCapture} />
+    <ShellActionsProvider value={actions}>
+      <Shell appName="Motif" sidebar={<AppSidebar />}>
+        <AppRoutes />
+      </Shell>
+
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onCreateTask={() => {
+          setPaletteOpen(false)
+          setCaptureOpen(true)
+        }}
+        onOpenAbout={() => {
+          setPaletteOpen(false)
+          setAboutOpen(true)
+        }}
+      />
       <QuickAddDialog open={captureOpen} onOpenChange={setCaptureOpen} />
-    </>
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+    </ShellActionsProvider>
   )
 }
 
@@ -88,10 +117,7 @@ export function App() {
   return (
     <ErrorBoundary>
       <WorkspaceProvider>
-        <Shell appName="Motif Productivity Suite" sidebar={<AppSidebar />}>
-          <GlobalCommands />
-          <AppRoutes />
-        </Shell>
+        <AppChrome />
       </WorkspaceProvider>
     </ErrorBoundary>
   )

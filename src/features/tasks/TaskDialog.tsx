@@ -182,7 +182,7 @@ export function TaskDialog({ open, onOpenChange, task, defaultProject, onSaved }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] w-[calc(100%-1.5rem)] max-w-2xl overflow-y-auto sm:w-full">
         <DialogHeader>
           <DialogTitle>{task ? 'Edit task' : 'New task'}</DialogTitle>
           <DialogDescription>

@@ -75,14 +75,14 @@ export function InboxPage() {
               : `${inbox.length} item${inbox.length === 1 ? '' : 's'} to triage. Decide: do it, date it, or drop it.`}
           </PageDescription>
         </div>
-        <PageActions>
+        <PageActions className="flex-wrap gap-2">
           <Button asChild size="sm" variant="outline">
             <a href="#inbox-capture">Capture</a>
           </Button>
         </PageActions>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-4xl">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-4xl">
         <Card id="inbox-capture">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Quick capture</CardTitle>
@@ -120,7 +120,7 @@ export function InboxPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive coarse:h-11 coarse:w-11"
                           onClick={() => handleDelete(task)}
                           aria-label={`Delete “${task.title}”`}
                         >
@@ -164,11 +164,12 @@ export function InboxPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => triageTask(task.id)}>
+                      <Button size="sm" variant="outline" className="coarse:h-11" onClick={() => triageTask(task.id)}>
                         Move to tasks
                       </Button>
                       <Button
                         size="sm"
+                        className="coarse:h-11"
                         onClick={() => {
                           triageTask(task.id, { dueDate: new Date().toISOString().slice(0, 10) })
                           toast.success('Scheduled for today')
@@ -179,7 +180,7 @@ export function InboxPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className={cn('text-muted-foreground')}
+                        className={cn('text-muted-foreground coarse:h-11')}
                         onClick={() => {
                           triageTask(task.id, { startDate: new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10) })
                           toast('Parked for later', { icon: '🌙' })

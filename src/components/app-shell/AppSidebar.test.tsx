@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it } from 'vitest'
 import { SIDEBAR_KEY } from '@/lib/storage'
@@ -73,11 +73,15 @@ describe('AppSidebar', () => {
     renderApp('/')
     await user.click(await screen.findByRole('button', { name: /collapse sidebar/i }))
 
-    await user.click(screen.getByRole('button', { name: /theme: light\. switch to dark theme/i }))
+    // The rail has its own cycling switch; the mobile header has an identical
+    // one (same accessible name, different chrome), so scope to the sidebar.
+    const rail = within(document.getElementById('app-sidebar') as HTMLElement)
+
+    await user.click(rail.getByRole('button', { name: /theme: light\. switch to dark theme/i }))
     expect(document.documentElement).toHaveClass('dark')
     await waitFor(() => expect(window.localStorage.getItem('motif:theme')).toBe('dark'))
 
-    await user.click(screen.getByRole('button', { name: /theme: dark\. switch to match system theme/i }))
+    await user.click(rail.getByRole('button', { name: /theme: dark\. switch to match system theme/i }))
     expect(document.documentElement).not.toHaveClass('dark')
     // "Follow system" is the absence of a stored preference.
     await waitFor(() => expect(window.localStorage.getItem('motif:theme')).toBeNull())

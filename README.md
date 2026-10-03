@@ -6,10 +6,24 @@
 ![Vite](https://img.shields.io/badge/Vite-8-purple?logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwindcss)
 
-> A local-first productivity suite for planning projects, tracking tasks and understanding your workload.
-> Fast, keyboard-friendly, accessible, and private by default — your data never leaves the browser.
+> **Every tool I needed to run my week already existed. The problem was the door.**
+>
+> Each of them did one piece of the job beautifully, then put the useful half behind a subscription — five apps, five
+> logins, five bills, to trust five companies with the same eight features. So I built my own roof instead: capture,
+> plan, focus, review and automate in one workspace that opens instantly, works offline, and asks for nothing.
+>
+> Motif is a local-first productivity suite. It is also a personal tool, encoded to the way I actually work — and
+> because it is one repository and a build command, a feature I want costs an evening rather than a plan upgrade.
 
-[**Live demo**](https://motif-productivity-suite.vercel.app/) · [**Report an issue**](https://github.com/Brandonflex/motif-productivity-suite/issues)
+[**Live demo**](https://motif-productivity-suite.vercel.app/) · [**Source**](https://github.com/Brandonflex/motif-productivity-suite) · [**Report an issue**](https://github.com/Brandonflex/motif-productivity-suite/issues)
+
+_In the app, the same story is one click away: the sidebar footer links to it, ⌘K finds it ("Why Motif exists"), and
+Settings repeats the promise where people go when deciding whether to trust something with their week._
+
+**Free, and yours:** no account, no trial, no tier that unlocks the useful half, no analytics. Your workspace is a JSON
+file you own — export it whenever you like, and nothing of yours is trapped here.
+
+---
 
 ---
 
@@ -33,6 +47,58 @@
 
 Everything is client-side. There is no backend, no account, and no analytics — the app works offline and survives a
 reload.
+
+---
+
+## Why Motif exists
+
+Motif is a personal response to rented productivity. Almost everything I lean on — quick capture, a daily plan, a focus
+timer, a weekly review, a rule that files things for me — is done beautifully somewhere, and almost all of it is behind
+a paywall. Motif is my one roof: the parts that matter most to me are not the parts I have to pay to reach.
+
+### The trade Motif refuses to make
+
+|             | Subscription tools                        | Motif                                                                |
+| :---------- | :---------------------------------------- | :------------------------------------------------------------------- |
+| **Cost**    | Monthly, forever, per feature tier        | Free. The whole suite, no tiers.                                     |
+| **Account** | Sign-up, verification, a profile to lose  | None. Open the URL and work.                                         |
+| **Data**    | On someone else's server, in their export | In your browser, in a file you can download and read                 |
+| **Trust**   | Policy pages and promises                 | You can read every line, or fork it and change it                    |
+| **Fit**     | Whatever the roadmap says                 | Whatever my week needs — a feature is an evening, not a plan upgrade |
+
+### Encoded to the maker
+
+This is not a generic tracker with a logo on it. It runs on my habits:
+
+- **My working window and my idea of a good day** — a morning plan, a focus goal, an evening shutdown. Capacity is checked
+  before the day is committed, not after it collapses.
+- **A streak that forgives weekends**, because rest is part of the rhythm rather than a gap in the record, and shields
+  for the days when life happens anyway.
+- **Badges for the work, never for the app-opening** — completions, focused minutes, days actually planned, shutdowns
+  honoured. The reward is a good week, not a login streak.
+- **Plain language capture** because I think in sentences: _"Pay the invoice tomorrow 2pm #finance ~45m every month"_.
+- **Keyboard first, touch first, and no dead ends** — the same actions are reachable with ⌘K, with a thumb on a phone,
+  and with a screen reader.
+
+### The mark, and what it means
+
+`public/favicon.svg` and `src/components/brand/MotifMark.tsx` are the same drawing, and it says two things at once:
+
+- **The rosette** — one petal, repeated six times. A _motif_ is a figure that repeats, so the logo is built from a single
+  repeated stroke: the same small piece of work, coming back around. That is also, exactly, what a habit is.
+- **The braid** — two ribbons crossing through the middle, one warm, one cool, drawn as one looping path. Balance:
+  effort **and** recovery, productivity **and** play. It is the two traditions the suite borrows from — the disciplined
+  systems (Todoist, Asana, Motion) and the humane ones (Sunsama, Things, Reclaim) — tied together instead of opposed.
+- **The beat** — a pulsing core, the tempo a ritual gives a week.
+- **The spark** — an orbiting dot: the next capture, the next small start.
+
+The name half and the balance half read from the same mark, which is the point.
+
+### The promise
+
+> **No account. No subscription. No analytics. Nothing leaves this browser.**
+
+If you want it to feel like yours, fork it and change the copy — that is not a licence footnote, it is the design goal.
 
 ---
 
@@ -124,21 +190,11 @@ The contract is simple: **decoration never blocks work, and reduced motion wins.
 keyframe, and the JavaScript effects ask `useReducedMotion()` before they run, so a user who has asked their system for
 calm gets a calm, fully functional app.
 
-### The mark
+### Motion around the mark
 
-`public/favicon.svg` and `src/components/brand/MotifMark.tsx` are the same drawing:
-
-- **The rosette** — one petal, repeated six times. A _motif_ is a figure that repeats, so the logo is built from a
-  single repeated stroke: the same small piece of work, coming back around. It is also, exactly, what a habit is.
-- **The braid** — two ribbons crossing through the middle, one warm, one cool. Balance: effort **and** recovery,
-  productivity **and** play. They are drawn as one looping path, because a routine closes and starts again.
-- **The beat** — a pulsing core, a metronome for the day.
-- **The spark** — an orbiting dot: the next capture, the next small start.
-
-That reads twice, which is the point: the _name_ is about repetition, the _balance_ is the two inspirations the suite
-borrows from — the disciplined systems (Todoist, Asana, Motion) and the humane ones (Sunsama, Things, Reclaim). The
-mark animates (slow rosette rotation, counter-rotating ticks, a drawn braid, a heartbeat) and accepts `animated={false}`
-for dense lists, print and favicons.
+The mark itself is explained under [why Motif exists](#the-mark-and-what-it-means): one petal repeated, two braided
+ribbons, a beat and a spark. It animates — slow rosette rotation, counter-rotating ticks, a drawn braid, a heartbeat —
+and accepts `animated={false}` for dense lists, print and favicons.
 
 ### Reminders without a scheduler
 
@@ -207,8 +263,8 @@ src/
 ├── index.css                   # Tailwind layers + base styles
 ├── styles/tokens.css           # Design tokens (light, dark + prefers-color-scheme)
 ├── components/
-│   ├── app-shell/              # Shell, sidebar rail, theme switch, aurora backdrop
-│   ├── brand/                  # The Motif mark (rosette + braid, animated)
+│   ├── app-shell/              # Shell, sidebar rail, theme switch, header actions
+│   ├── brand/                  # The Motif mark, the story dialog, the welcome card
 │   ├── command-palette/        # ⌘K palette + global shortcut wiring
 │   ├── feedback/               # Error boundary, suspense skeleton
 │   ├── fx/                     # Canvas confetti (reduced-motion aware)
@@ -228,6 +284,7 @@ src/
 │   ├── insights/               # Momentum, heatmap, rhythm, badges, rollups
 │   └── settings/               # Appearance, planning, reminders, automations, data, health
 │                               # (each view ships its own *.test.tsx)
+├── content/story.ts            # Why Motif exists — one source for README, dialogs, welcome
 ├── hooks/                      # useDocumentTitle, useHotkeys, useReducedMotion, useReminders
 ├── lib/                        # storage, dates, ids, theme, sidebar, cn, quick-add,
 │                               # recurrence, plan, rules, analytics, filters, achievements,
@@ -327,12 +384,53 @@ dark-mode user sees the right colours on the very first paint — before any Jav
 | `npm run lint`                      | Types + ESLint + Stylelint + tokens                                |
 | `npm run verify`                    | Lint + tests + build — the full gate                               |
 
-The suite is **29 files / 270 tests** and covers **83.6 % of statements**, 76 % of branches and 85.7 % of lines —
+The suite is **31 files / 284 tests** and covers **84 % of statements**, 76.1 % of branches and 86 % of lines —
 concentrated where the logic is (`src/lib/**`), with the views covered through the routes users actually take.
 
 `.github/workflows/ci.yml` runs `npm run lint`, `npm test` and `npm run build` on every push and pull request to
 `main`, then uploads the `dist/` artifact. (Note: GitHub only reads workflows from `.github/workflows/` — an earlier
 copy of this pipeline lived at `.github/ci.yml` and therefore never ran.)
+
+Formatting is prettier, pinned in `.prettierrc.json` — **120 columns, single quotes, no semicolons, trailing commas**.
+It is a convention rather than a gate: `npm run format` is opt-in because a handful of long expressions are wrapped by
+hand where a formatter would rather run them off the right edge, and reformatting the whole tree to satisfy a checker
+would produce a diff nobody asked to review.
+
+---
+
+## One app, every device
+
+Motif is built for the same workspace on a phone, a tablet, a laptop and a desktop — with the same features, not a
+"lite" version of them. The interesting part is that size and input device are different questions: a tablet is wide
+_and_ finger-driven, and a desktop window can be narrow. So the layout is responsive, and the _interaction_ adapts to
+the pointer.
+
+```js
+// tailwind.config.js — device tiers, not size guesses
+addVariant('coarse', '@media (pointer: coarse)') // fingers: ≥44px targets
+addVariant('fine', '@media (pointer: fine)') // mice: density
+addVariant('hoverable', '@media (hover: hover)') // only where hover exists
+```
+
+- **Touch parity for every shortcut.** ⌘K and `Q` open the palette and capture on a keyboard; the mobile header carries
+  the same two actions as buttons, next to the drawer trigger. A phone has no keyboard, so a keyboard-only feature is a
+  missing feature.
+- **Thumbs, not mice.** Rows, checkboxes, view switchers, triage buttons and the rhythm-graph cells grow to ~44px under
+  `pointer: coarse` and stay dense under `pointer: fine`. No guessing from screen width.
+- **The drawer behaves like a drawer.** Tapping the scrim, pressing Escape, or navigating from inside it closes the
+  mobile menu — and the scrim makes the page behind it unmistakably inert.
+- **Notches and home indicators are layout, not afterthoughts.** The shell insets itself for `safe-area-inset-*`, and
+  toasts sit above the home indicator and never exceed the viewport width.
+- **Browser chrome is a variable.** Overlays use `dvh` (not `vh`) and cap their width relative to the viewport, so the
+  on-screen keyboard cannot push the last command result or the "Save task" button out of reach.
+- **Motion respects the device and the person.** Tilt, parallax and glow are pointer-driven and skip touch entirely;
+  every animation is stilled by `prefers-reduced-motion`.
+- **No horizontal scrollbars, anywhere.** Wide content (the task table, the seven-day schedule canvas, the rhythm graph)
+  scrolls inside its own container while the page itself stays put.
+
+Parity is asserted in the test suite, not just claimed: `src/components/app-shell/devices.test.tsx` checks that the
+touch header carries the keyboard's actions, that the drawer closes on scrim click, Escape and navigation, that the
+shell applies its safe-area inset, and that dialogs stay inside a small viewport.
 
 ---
 
@@ -413,7 +511,8 @@ that adds only a few kB.
 
 Deliberately not shipped yet — these are the natural next steps, and the store/schema layer is ready for them:
 
-- Backend sync or auth (everything is local-only today, by design).
+- Backend sync or auth — deliberately not started: an account is the door this project exists to avoid, so any
+  sync would have to stay optional and self-hostable.
 - Pointer-based drag-and-reorder inside the board (the schedule canvas already accepts drops; `@dnd-kit` is not needed
   for the HTML5 drag-and-drop MVP that shipped).
 - Visual-regression tests (the suite runs in jsdom; there is no headless browser in the pipeline yet).

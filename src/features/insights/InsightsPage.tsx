@@ -57,7 +57,7 @@ export function InsightsPage() {
         </div>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-6xl">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-6xl">
         <StatGroup>
           <Stat
             label="Streak"

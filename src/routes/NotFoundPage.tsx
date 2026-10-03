@@ -10,7 +10,7 @@ export function NotFoundPage() {
 
   return (
     <Page>
-      <PageBody className="mx-auto flex w-full max-w-3xl items-center justify-center">
+      <PageBody className="px-4 sm:px-6 mx-auto flex w-full max-w-3xl items-center justify-center">
         <div className="w-full">
           <EmptyState
             icon={<Compass className="h-5 w-5" aria-hidden="true" />}

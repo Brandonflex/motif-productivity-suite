@@ -74,10 +74,22 @@ export function UpcomingPage() {
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={() => snoozeTask(task.id, 1)} aria-label={`Push “${task.title}” by one day`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="coarse:h-11"
+            onClick={() => snoozeTask(task.id, 1)}
+            aria-label={`Push “${task.title}” by one day`}
+          >
             +1d
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => snoozeTask(task.id, 7)} aria-label={`Push “${task.title}” by a week`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="coarse:h-11"
+            onClick={() => snoozeTask(task.id, 7)}
+            aria-label={`Push “${task.title}” by a week`}
+          >
             +1w
           </Button>
         </div>
@@ -110,7 +122,7 @@ export function UpcomingPage() {
         </div>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-4xl space-y-6">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-4xl space-y-6">
         {groups.overdue.length > 0 && (
           <Section title="Overdue" subtitle={`${groups.overdue.length} task(s)`}>
             {groups.overdue.map((task) => (

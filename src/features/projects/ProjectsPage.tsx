@@ -116,7 +116,7 @@ export function ProjectsPage() {
                 : `${projects.length} project${projects.length === 1 ? '' : 's'} · ${tasks.length} task${tasks.length === 1 ? '' : 's'} in workspace`}
             </PageDescription>
           </div>
-          <PageActions>
+          <PageActions className="flex-wrap gap-2">
             <Button onClick={openCreate} size="sm" aria-keyshortcuts="n">
               <Plus className="h-4 w-4" aria-hidden="true" />
               New project
@@ -124,7 +124,7 @@ export function ProjectsPage() {
           </PageActions>
         </PageHeaderBar>
 
-        <PageBody className="mx-auto w-full max-w-6xl">
+        <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-6xl">
           {projects.length === 0 ? (
             <Card>
               <EmptyState

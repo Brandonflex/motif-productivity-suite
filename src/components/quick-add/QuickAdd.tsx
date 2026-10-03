@@ -139,7 +139,7 @@ interface QuickAddDialogProps {
 export function QuickAddDialog({ open, onOpenChange }: QuickAddDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-xl sm:w-full">
         <DialogHeader>
           <DialogTitle>Capture</DialogTitle>
           <DialogDescription>

@@ -17,6 +17,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatTimestamp } from '@/lib/dates'
 import { backupFilename, parseBackup, readFileAsText } from '@/lib/storage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { AboutCard } from './AboutCard'
 import { AutomationsCard } from './AutomationsCard'
 import { PlanningCard } from './PlanningCard'
 import { RemindersCard } from './RemindersCard'
@@ -81,7 +82,7 @@ export function SettingsPage() {
         </div>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-4xl">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-4xl">
         {/* Appearance */}
         <Card>
           <CardHeader className="flex-row items-center gap-2 space-y-0">
@@ -103,6 +104,7 @@ export function SettingsPage() {
         <RemindersCard />
 
         <AutomationsCard />
+        <AboutCard />
 
         {/* Data management */}
         <Card>

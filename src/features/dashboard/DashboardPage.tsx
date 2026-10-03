@@ -29,6 +29,8 @@ import { TiltCard } from '@/components/ui/TiltCard'
 import { RhythmGraph } from '@/features/achievements/RhythmGraph'
 import { useAchievements } from '@/features/achievements/useAchievements'
 import { Flame } from 'lucide-react'
+import { WelcomeCard } from '@/components/brand/WelcomeCard'
+import { hasSeenWelcome } from '@/lib/welcome'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { UNASSIGNED_PROJECT } from '@/types/workspace'
@@ -99,7 +101,7 @@ export function DashboardPage() {
           <PageTitle>Dashboard</PageTitle>
           <PageDescription>Here is what is happening in your workspace today.</PageDescription>
         </div>
-        <PageActions>
+        <PageActions className="flex-wrap gap-2">
           <Button onClick={() => navigate('/tasks?new=1')} size="sm" aria-keyshortcuts="n">
             <Plus className="h-4 w-4" aria-hidden="true" />
             New task
@@ -107,7 +109,10 @@ export function DashboardPage() {
         </PageActions>
       </PageHeaderBar>
 
-      <PageBody className="mx-auto w-full max-w-6xl">
+      <PageBody className="px-4 sm:px-6 mx-auto w-full max-w-6xl">
+        {/* First visit only: hello, three ways in, and the promise. */}
+        {!hasSeenWelcome() && <WelcomeCard />}
+
         <StatGroup>
           <TiltCard intensity={5}>
             <Stat

@@ -1,8 +1,48 @@
-import { useState, type ReactNode } from 'react'
-import { AppShell, AppShellMain, AppShellSidebar, MobileSidebarTrigger } from '@blinkdotnew/ui'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
+import { AppShell, AppShellMain, AppShellSidebar, Button, MobileSidebarTrigger, useAppShell } from '@blinkdotnew/ui'
+import { Plus, Search } from 'lucide-react'
 import { MotifMark } from '@/components/brand/MotifMark'
 import { readSidebarCollapsed } from '@/lib/sidebar'
-import { ThemeToggle } from './ThemeToggle'
+import { useShellActions } from './shell-actions'
+import { ThemeCycleButton } from './ThemeToggle'
+
+/**
+ * The mobile drawer's missing half: a scrim to close it, Escape to dismiss it,
+ * and a route change to get out of the way.
+ *
+ * The library's drawer slides over the page without any of those, which is fine
+ * for a demo and annoying on a phone: tapping "Tasks" used to leave the menu
+ * sitting on top of the very screen it navigated to.
+ */
+function MobileDrawerBehaviour() {
+  const { mobileOpen, setMobileOpen } = useAppShell()
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname, setMobileOpen])
+
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [mobileOpen, setMobileOpen])
+
+  if (!mobileOpen) return null
+
+  return (
+    <button
+      type="button"
+      aria-label="Close menu"
+      onClick={() => setMobileOpen(false)}
+      className="fixed inset-0 z-40 cursor-default bg-foreground/25 backdrop-blur-[2px] md:hidden"
+    />
+  )
+}
 
 interface ShellProps {
   /** Sidebar content — typically `<AppSidebar />`. */
@@ -19,9 +59,17 @@ interface ShellProps {
  */
 export function Shell({ sidebar, appName = 'Motif', children }: ShellProps) {
   const [defaultCollapsed] = useState(readSidebarCollapsed)
+  const { openPalette, openCapture } = useShellActions()
 
   return (
-    <AppShell defaultCollapsed={defaultCollapsed} className="h-dvh bg-background">
+    <AppShell
+      defaultCollapsed={defaultCollapsed}
+      /* The notch and the home indicator are part of the layout, not an
+         afterthought: the shell insets itself instead of letting the browser
+         chrome sit on top of the header and the sidebar footer. */
+      className="h-dvh bg-background pt-[env(safe-area-inset-top)]"
+    >
+      <MobileDrawerBehaviour />
       {/*
         Ambient depth: two slowly drifting colour fields behind everything.
         Purely decorative (aria-hidden, pointer-events-none) and stilled by the
@@ -45,13 +93,38 @@ export function Shell({ sidebar, appName = 'Motif', children }: ShellProps) {
           Skip to content
         </a>
 
-        {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur md:hidden">
-          <MobileSidebarTrigger />
+        {/*
+          Mobile header. Every keyboard affordance has a touch twin here —
+          ⌘K and Q should not be desktop-only privileges, and a phone has no
+          keyboard at all. The theme switch collapses to its cycling button to
+          pay for the space.
+        */}
+        <header className="sticky top-0 z-30 flex min-h-14 items-center gap-1.5 border-b border-border bg-background/90 px-2 backdrop-blur md:hidden">
+          <MobileSidebarTrigger className="coarse:h-11 coarse:w-11" />
           <MotifMark size={22} />
           <span className="truncate text-sm font-semibold">{appName}</span>
-          <div className="ml-auto">
-            <ThemeToggle compact />
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Search and commands"
+              onClick={openPalette}
+              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground coarse:h-11 coarse:w-11"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Capture a task"
+              onClick={openCapture}
+              className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground coarse:h-11 coarse:w-11"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <ThemeCycleButton className="coarse:h-11 coarse:w-11" />
           </div>
         </header>
 
