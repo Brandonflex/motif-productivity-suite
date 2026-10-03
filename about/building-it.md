@@ -39,7 +39,7 @@ instead of asking support. There's no backlog to lobby.
 
 ## Make it yours
 
-You don't need permission. It's a public repository written to be read, and the README says plainly what this is for:
+You don't need permission — it's [MIT](../LICENSE), which is a formality rather than a fence:
 
 1. **Fork it.** Then change the copy, the palette and the name in your own repo — the fastest way to feel like a tool
    is yours is to see your own words in it.

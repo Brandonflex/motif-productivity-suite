@@ -5,6 +5,7 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)
 ![Vite](https://img.shields.io/badge/Vite-8-purple?logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?logo=tailwindcss)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 > **Every tool I needed to run my week already existed. The problem was the door.**
 >
@@ -375,6 +376,7 @@ dark-mode user sees the right colours on the very first paint — before any Jav
 | `npm run check:tokens`              | Design-token + contrast guardrail                                  |
 | `npm test` / `npm run test:watch`   | Vitest (jsdom)                                                     |
 | `npm run test:coverage`             | The same suite with a v8 coverage report                           |
+| `npm run format`                    | Prettier with the repo's pinned config (opt-in, not a gate)        |
 | `npm run lint`                      | Types + ESLint + Stylelint + tokens                                |
 | `npm run verify`                    | Lint + tests + build — the full gate                               |
 
@@ -518,5 +520,6 @@ Deliberately not shipped yet — these are the natural next steps, and the store
 
 ## License
 
-No license file is currently included; all rights reserved by the author. Add a license before accepting external
-contributions.
+[MIT](LICENSE) © 2026 Brandon. In practice that means the ordinary thing: read it, run it, fork it, rename it, make it
+yours. The only parts worth carrying over if you build on it are the ones that keep it honest — no accounts, no
+analytics, no server holding somebody's week.

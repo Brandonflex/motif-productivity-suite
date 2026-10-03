@@ -68,7 +68,7 @@
     "tailwind-merge": "^2.6.0",
     "zod": "^4.4.3"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Brandonflex/motif-productivity-suite.git"
@@ -85,5 +85,6 @@
     "react",
     "vite",
     "tailwind"
-  ]
+  ],
+  "author": "Brandon (https://github.com/Brandonflex)"
 }
