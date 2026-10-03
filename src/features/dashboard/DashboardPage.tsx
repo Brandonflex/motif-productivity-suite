@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Button,
   Card,
@@ -16,71 +16,71 @@ import {
   Progress,
   Stat,
   StatGroup,
-} from "@blinkdotnew/ui";
-import { ArrowRight, CalendarClock, CheckCircle2, FolderKanban, ListChecks, Plus, TriangleAlert } from "lucide-react";
-import { useWorkspace } from "@/features/workspace/useWorkspace";
-import { momentum, projectRollups, workload } from "@/lib/analytics";
-import { formatMinutes } from "@/lib/dates";
-import { describeDueDate, dueDateSortKey, formatDueDate, isValidIsoDate } from "@/lib/dates";
-import { DueDatePill, ProjectStatusPill } from "@/components/ui/Pills";
-import { PageHeaderBar } from "@/components/ui/PageHeaderBar";
-import { ProgressRing } from "@/components/ui/ProgressRing";
-import { TiltCard } from "@/components/ui/TiltCard";
-import { RhythmGraph } from "@/features/achievements/RhythmGraph";
-import { useAchievements } from "@/features/achievements/useAchievements";
-import { Flame } from "lucide-react";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useHotkeys } from "@/hooks/useHotkeys";
-import { UNASSIGNED_PROJECT } from "@/types/workspace";
+} from '@blinkdotnew/ui'
+import { ArrowRight, CalendarClock, CheckCircle2, FolderKanban, ListChecks, Plus, TriangleAlert } from 'lucide-react'
+import { useWorkspace } from '@/features/workspace/useWorkspace'
+import { momentum, projectRollups, workload } from '@/lib/analytics'
+import { formatMinutes } from '@/lib/dates'
+import { describeDueDate, dueDateSortKey, formatDueDate, isValidIsoDate } from '@/lib/dates'
+import { DueDatePill, ProjectStatusPill } from '@/components/ui/Pills'
+import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
+import { ProgressRing } from '@/components/ui/ProgressRing'
+import { TiltCard } from '@/components/ui/TiltCard'
+import { RhythmGraph } from '@/features/achievements/RhythmGraph'
+import { useAchievements } from '@/features/achievements/useAchievements'
+import { Flame } from 'lucide-react'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { useHotkeys } from '@/hooks/useHotkeys'
+import { UNASSIGNED_PROJECT } from '@/types/workspace'
 
-const UPCOMING_LIMIT = 5;
+const UPCOMING_LIMIT = 5
 
 export function DashboardPage() {
-  useDocumentTitle("Dashboard");
-  const navigate = useNavigate();
-  const { tasks, projects, stats, toggleTaskStatus, focusSessions, settings, todayLog } = useWorkspace();
+  useDocumentTitle('Dashboard')
+  const navigate = useNavigate()
+  const { tasks, projects, stats, toggleTaskStatus, focusSessions, settings, todayLog } = useWorkspace()
 
-  const { xp, streak, shelf, history } = useAchievements();
+  const { xp, streak, shelf, history } = useAchievements()
   const nextBadge = useMemo(() => {
-    const locked = shelf.filter((state) => !state.unlocked);
+    const locked = shelf.filter((state) => !state.unlocked)
     return locked.length === 0
       ? null
-      : locked.reduce((best, state) => (state.ratio > best.ratio ? state : best), locked[0]!);
-  }, [shelf]);
+      : locked.reduce((best, state) => (state.ratio > best.ratio ? state : best), locked[0]!)
+  }, [shelf])
 
-  const score = useMemo(() => momentum(tasks, focusSessions), [focusSessions, tasks]);
-  const load = useMemo(() => workload(tasks, settings), [tasks, settings]);
-  const rollups = useMemo(() => projectRollups(projects, tasks), [projects, tasks]);
+  const score = useMemo(() => momentum(tasks, focusSessions), [focusSessions, tasks])
+  const load = useMemo(() => workload(tasks, settings), [tasks, settings])
+  const rollups = useMemo(() => projectRollups(projects, tasks), [projects, tasks])
 
-  useHotkeys({ n: () => navigate("/tasks?new=1") });
+  useHotkeys({ n: () => navigate('/tasks?new=1') })
 
   const upcoming = useMemo(
     () =>
       tasks
-        .filter((task) => task.status !== "Completed")
+        .filter((task) => task.status !== 'Completed')
         .sort((a, b) => {
-          const byDue = dueDateSortKey(a.dueDate).localeCompare(dueDateSortKey(b.dueDate));
-          return byDue !== 0 ? byDue : a.title.localeCompare(b.title);
+          const byDue = dueDateSortKey(a.dueDate).localeCompare(dueDateSortKey(b.dueDate))
+          return byDue !== 0 ? byDue : a.title.localeCompare(b.title)
         })
         .slice(0, UPCOMING_LIMIT),
     [tasks],
-  );
+  )
 
   const distribution = useMemo(() => {
     const buckets = [
-      { label: "Completed", status: "Completed" as const, bar: "bg-success" },
-      { label: "In Progress", status: "In Progress" as const, bar: "bg-info" },
-      { label: "Pending", status: "Pending" as const, bar: "bg-muted-foreground/50" },
-    ];
+      { label: 'Completed', status: 'Completed' as const, bar: 'bg-success' },
+      { label: 'In Progress', status: 'In Progress' as const, bar: 'bg-info' },
+      { label: 'Pending', status: 'Pending' as const, bar: 'bg-muted-foreground/50' },
+    ]
     return buckets.map((bucket) => {
-      const count = tasks.filter((task) => task.status === bucket.status).length;
+      const count = tasks.filter((task) => task.status === bucket.status).length
       return {
         ...bucket,
         count,
         percent: tasks.length === 0 ? 0 : Math.round((count / tasks.length) * 100),
-      };
-    });
-  }, [tasks]);
+      }
+    })
+  }, [tasks])
 
   const projectsWithLoad = rollups.map((rollup) => ({
     ...rollup.project,
@@ -90,7 +90,7 @@ export function DashboardPage() {
     openMinutes: rollup.openMinutes,
     // Rollup projects show derived progress; manual ones keep their slider value.
     progress: rollup.project.autoProgress ? rollup.percent : rollup.project.progress,
-  }));
+  }))
 
   return (
     <Page>
@@ -100,7 +100,7 @@ export function DashboardPage() {
           <PageDescription>Here is what is happening in your workspace today.</PageDescription>
         </div>
         <PageActions>
-          <Button onClick={() => navigate("/tasks?new=1")} size="sm" aria-keyshortcuts="n">
+          <Button onClick={() => navigate('/tasks?new=1')} size="sm" aria-keyshortcuts="n">
             <Plus className="h-4 w-4" aria-hidden="true" />
             New task
           </Button>
@@ -152,7 +152,7 @@ export function DashboardPage() {
                   <CalendarClock className="h-4 w-4" aria-hidden="true" />
                 )
               }
-              description={stats.overdueTasks > 0 ? "Needs attention" : "Nothing overdue"}
+              description={stats.overdueTasks > 0 ? 'Needs attention' : 'Nothing overdue'}
             />
           </TiltCard>
         </StatGroup>
@@ -167,14 +167,14 @@ export function DashboardPage() {
                   to="/today"
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                 >
-                  {todayLog.plannedAt ? "Open today’s plan" : "Plan my day"}
+                  {todayLog.plannedAt ? 'Open today’s plan' : 'Plan my day'}
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
                 <Link
                   to="/inbox"
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
                 >
-                  Triage {stats.inboxTasks} inbox item{stats.inboxTasks === 1 ? "" : "s"}
+                  Triage {stats.inboxTasks} inbox item{stats.inboxTasks === 1 ? '' : 's'}
                   <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </div>
@@ -183,7 +183,7 @@ export function DashboardPage() {
               <div>
                 <p className="text-xs text-muted-foreground">Committed today</p>
                 <p className="tabular-nums text-lg font-semibold">
-                  {todayLog.plannedTaskIds.length} task{todayLog.plannedTaskIds.length === 1 ? "" : "s"}
+                  {todayLog.plannedTaskIds.length} task{todayLog.plannedTaskIds.length === 1 ? '' : 's'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {stats.dueTodayTasks} due today · {stats.inProgressTasks} in progress
@@ -194,29 +194,29 @@ export function DashboardPage() {
                 <p className="tabular-nums text-lg font-semibold">
                   {formatMinutes(load.committedMinutes)}
                   <span className="text-sm font-normal text-muted-foreground">
-                    {" "}
+                    {' '}
                     / {formatMinutes(load.capacityMinutes)}
                   </span>
                 </p>
                 <Progress
                   value={Math.min(100, load.ratio * 100)}
                   aria-label="Committed work against capacity"
-                  className={load.over ? "[&>div]:bg-warning" : undefined}
+                  className={load.over ? '[&>div]:bg-warning' : undefined}
                 />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Streak</p>
                 <p className="flex items-baseline gap-1.5 tabular-nums text-lg font-semibold">
-                  {streak.current} day{streak.current === 1 ? "" : "s"}
+                  {streak.current} day{streak.current === 1 ? '' : 's'}
                   <Flame
-                    className={streak.activeToday ? "h-4 w-4 text-brand" : "h-4 w-4 text-muted-foreground"}
+                    className={streak.activeToday ? 'h-4 w-4 text-brand' : 'h-4 w-4 text-muted-foreground'}
                     aria-hidden="true"
                   />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {streak.atRisk
                     ? `${streak.daysToMilestone} to the ${streak.nextMilestone}-day badge — anything counts`
-                    : `${streak.shieldsHeld} shield${streak.shieldsHeld === 1 ? "" : "s"} banked · longest ${streak.longest}`}
+                    : `${streak.shieldsHeld} shield${streak.shieldsHeld === 1 ? '' : 's'} banked · longest ${streak.longest}`}
                 </p>
               </div>
             </CardContent>
@@ -254,7 +254,7 @@ export function DashboardPage() {
                   <p className="text-xs text-muted-foreground">{xp.xp.toLocaleString()} XP earned</p>
                   {nextBadge && (
                     <p className="text-xs text-muted-foreground">
-                      Next badge: <span className="font-medium text-foreground">{nextBadge.name}</span> —{" "}
+                      Next badge: <span className="font-medium text-foreground">{nextBadge.name}</span> —{' '}
                       {nextBadge.progress}/{nextBadge.target}
                     </p>
                   )}
@@ -285,18 +285,18 @@ export function DashboardPage() {
                   icon={<CheckCircle2 className="h-5 w-5" aria-hidden="true" />}
                   title="Nothing open"
                   description="Every task in this workspace is complete."
-                  action={{ label: "Create a task", onClick: () => navigate("/tasks?new=1") }}
+                  action={{ label: 'Create a task', onClick: () => navigate('/tasks?new=1') }}
                   className="py-10"
                 />
               ) : (
                 <ul className="divide-y divide-border">
                   {upcoming.map((task) => {
-                    const due = describeDueDate(task.dueDate, task.status === "Completed");
+                    const due = describeDueDate(task.dueDate, task.status === 'Completed')
                     return (
                       <li key={task.id} className="flex items-start gap-3 px-6 py-3.5">
                         <Checkbox
                           id={`upcoming-${task.id}`}
-                          checked={task.status === "Completed"}
+                          checked={task.status === 'Completed'}
                           onCheckedChange={() => toggleTaskStatus(task.id)}
                           className="mt-0.5"
                         />
@@ -308,13 +308,13 @@ export function DashboardPage() {
                             {task.title}
                           </label>
                           <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                            {task.project === UNASSIGNED_PROJECT ? "No project" : task.project}
-                            {isValidIsoDate(task.dueDate) ? ` · ${formatDueDate(task.dueDate)}` : ""}
+                            {task.project === UNASSIGNED_PROJECT ? 'No project' : task.project}
+                            {isValidIsoDate(task.dueDate) ? ` · ${formatDueDate(task.dueDate)}` : ''}
                           </p>
                         </div>
                         <DueDatePill label={due.label} tone={due.tone} />
                       </li>
-                    );
+                    )
                   })}
                 </ul>
               )}
@@ -373,7 +373,7 @@ export function DashboardPage() {
                 icon={<FolderKanban className="h-5 w-5" aria-hidden="true" />}
                 title="No projects yet"
                 description="Group related tasks under a project to track progress."
-                action={{ label: "Create a project", onClick: () => navigate("/projects?new=1") }}
+                action={{ label: 'Create a project', onClick: () => navigate('/projects?new=1') }}
                 className="py-10"
               />
             ) : (
@@ -386,7 +386,7 @@ export function DashboardPage() {
                         {project.doneCount} of {project.taskCount} tasks complete
                         {project.taskCount > 0 && ` · ${formatMinutes(project.openMinutes)} left`}
                         {project.overdue > 0 && ` · ${project.overdue} overdue`}
-                        {project.taskCount === 0 && " · no tasks linked yet"}
+                        {project.taskCount === 0 && ' · no tasks linked yet'}
                       </p>
                     </div>
                     <ProjectStatusPill status={project.status} className="self-start sm:self-auto" />
@@ -404,5 +404,5 @@ export function DashboardPage() {
         </Card>
       </PageBody>
     </Page>
-  );
+  )
 }

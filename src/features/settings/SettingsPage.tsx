@@ -19,6 +19,7 @@ import { backupFilename, parseBackup, readFileAsText } from '@/lib/storage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { AutomationsCard } from './AutomationsCard'
 import { PlanningCard } from './PlanningCard'
+import { RemindersCard } from './RemindersCard'
 import { ThemeToggle } from '@/components/app-shell/ThemeToggle'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import type { WorkspaceSnapshot } from '@/types/workspace'
@@ -99,6 +100,7 @@ export function SettingsPage() {
         </Card>
 
         <PlanningCard />
+        <RemindersCard />
 
         <AutomationsCard />
 

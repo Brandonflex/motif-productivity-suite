@@ -8,6 +8,7 @@ import { CommandPalette, useGlobalShortcuts } from '@/components/command-palette
 import { QuickAddDialog } from '@/components/quick-add/QuickAdd'
 import { WorkspaceProvider } from '@/features/workspace/WorkspaceProvider'
 import { useAchievementCelebrations } from '@/features/achievements/useAchievements'
+import { useReminders } from '@/hooks/useReminders'
 import { NotFoundPage } from '@/routes/NotFoundPage'
 
 // Route-level code splitting: the shell paints immediately and each view is
@@ -65,6 +66,8 @@ function GlobalCommands() {
   // Badges and rank-ups are celebrated from one place, so they fire wherever
   // the user happens to be when the work lands.
   useAchievementCelebrations()
+  // Reminders are computed from the tasks, so one interval covers every view.
+  useReminders()
 
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [captureOpen, setCaptureOpen] = useState(false)

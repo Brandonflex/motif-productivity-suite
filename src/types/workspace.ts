@@ -193,6 +193,14 @@ export const workspaceSettingsSchema = z.object({
   rolloverUnfinished: z.boolean().catch(false),
   /** Ring when a focus interval ends. */
   chimeOnSessionEnd: z.boolean().catch(true),
+  /** How long before a pinned time a reminder may fire. */
+  reminderLeadMinutes: z.coerce.number().int().min(1).max(120).catch(10),
+  /** Use the browser's notification channel as well as the in-app toast. */
+  desktopReminders: z.boolean().catch(false),
+  /** Once-a-day nudge into the app, at this local time. */
+  checkInTime: clockTimeSchema.catch('09:00'),
+  /** Whether that daily nudge is wanted at all. */
+  dailyCheckIn: z.boolean().catch(true),
 })
 
 export type WorkspaceSettings = z.infer<typeof workspaceSettingsSchema>

@@ -143,6 +143,47 @@ describe('SettingsPage', () => {
     expect(screen.getByLabelText(`Enable ${stored.rules[0]!.name}`)).toBeInTheDocument()
   })
 
+  it('configures reminders: lead time, check-in time and the daily nudge', async () => {
+    const user = userEvent.setup()
+    seedWorkspace()
+    await openSettings()
+
+    expect(screen.getByText('Reminders')).toBeInTheDocument()
+
+    await user.click(screen.getByLabelText('Remind me before'))
+    await user.click(await screen.findByRole('option', { name: '30 minutes' }))
+
+    await user.click(screen.getByLabelText('Daily check-in nudge'))
+
+    const stored = JSON.parse(window.localStorage.getItem(WORKSPACE_KEY) as string) as {
+      settings: { reminderLeadMinutes: number; dailyCheckIn: boolean }
+    }
+    expect(stored.settings.reminderLeadMinutes).toBe(30)
+    expect(stored.settings.dailyCheckIn).toBe(false)
+  })
+
+  it('asks the browser before promising desktop reminders', async () => {
+    const user = userEvent.setup()
+    const requestPermission = vi.fn(async () => 'granted' as NotificationPermission)
+    vi.stubGlobal('Notification', Object.assign(function Stub() {}, { permission: 'default', requestPermission }))
+
+    try {
+      seedWorkspace()
+      await openSettings()
+
+      await user.click(screen.getByLabelText('Desktop notifications'))
+
+      expect(requestPermission).toHaveBeenCalled()
+      expect(await screen.findByText(/Desktop reminders on/i)).toBeInTheDocument()
+      const stored = JSON.parse(window.localStorage.getItem(WORKSPACE_KEY) as string) as {
+        settings: { desktopReminders: boolean }
+      }
+      expect(stored.settings.desktopReminders).toBe(true)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('toggles an existing rule off and can delete it', async () => {
     const user = userEvent.setup()
     seedWorkspace({

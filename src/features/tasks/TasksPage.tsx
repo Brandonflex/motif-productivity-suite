@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
+  BulkActions,
   Button,
   Card,
   Checkbox,
@@ -27,7 +28,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@blinkdotnew/ui'
-import { CalendarDays, CheckSquare, Columns3, Grid2x2, ListFilter, ListTree, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react'
+import {
+  CalendarDays,
+  CheckSquare,
+  Columns3,
+  Grid2x2,
+  ListFilter,
+  ListTree,
+  Pencil,
+  Plus,
+  Save,
+  Search,
+  SquareCheckBig,
+  Trash2,
+  X,
+} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -38,7 +53,16 @@ import { showUndoToast } from '@/components/ui/ToastUndo'
 import { DueDatePill, PriorityPill } from '@/components/ui/Pills'
 import { pillBase, taskStatusTone } from '@/components/ui/pill-tones'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
-import { DUE_FILTERS, TASK_PRIORITIES, TASK_STATUSES, UNASSIGNED_PROJECT, type SavedView, type Task, type TaskPriority, type TaskStatus } from '@/types/workspace'
+import {
+  DUE_FILTERS,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  UNASSIGNED_PROJECT,
+  type SavedView,
+  type Task,
+  type TaskPriority,
+  type TaskStatus,
+} from '@/types/workspace'
 import { DUE_FILTER_LABELS, matchesDueFilter, type DueFilter } from '@/lib/filters'
 import { TaskDialog } from './TaskDialog'
 import { BoardView } from './views/BoardView'
@@ -80,6 +104,7 @@ export function TasksPage() {
     setTaskStatus,
     deleteTask,
     restoreTask,
+    snoozeTask,
     stats,
     savedViews,
     saveView,
@@ -98,6 +123,9 @@ export function TasksPage() {
   const [saveOpen, setSaveOpen] = useState(false)
   const [viewName, setViewName] = useState('')
   const [detailId, setDetailId] = useState<string | null>(null)
+  /** Multi-select mode for the list view (bulk actions live in one bar). */
+  const [selecting, setSelecting] = useState(false)
+  const [selected, setSelected] = useState<string[]>([])
   const viewNameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -167,7 +195,9 @@ export function TasksPage() {
           // Completed work sinks to the bottom, then earliest due date first.
           const doneDelta = Number(a.status === 'Completed') - Number(b.status === 'Completed')
           if (doneDelta !== 0) return doneDelta
-          return dueDateSortKey(a.dueDate).localeCompare(dueDateSortKey(b.dueDate)) || b.createdAt.localeCompare(a.createdAt)
+          return (
+            dueDateSortKey(a.dueDate).localeCompare(dueDateSortKey(b.dueDate)) || b.createdAt.localeCompare(a.createdAt)
+          )
         }
       }
     })
@@ -211,14 +241,54 @@ export function TasksPage() {
     toast.success('View saved')
   }
 
-  const filtersActive =
-    query.trim() !== '' || statusFilter !== 'All' || priorityFilter !== 'All' || dueFilter !== 'all'
+  const filtersActive = query.trim() !== '' || statusFilter !== 'All' || priorityFilter !== 'All' || dueFilter !== 'all'
 
   const clearFilters = () => {
     setQuery('')
     setStatusFilter('All')
     setPriorityFilter('All')
     setDueFilter('all')
+  }
+
+  /** Everything currently on screen — the honest meaning of "all". */
+  const selectAllVisible = () => setSelected(visibleTasks.map((task) => task.id))
+
+  const toggleSelected = (id: string) =>
+    setSelected((previous) => (previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id]))
+
+  const exitSelection = () => {
+    setSelecting(false)
+    setSelected([])
+  }
+
+  /** Every bulk action is the same loop, so they stay predictable. */
+  const selectedTasks = visibleTasks.filter((task) => selected.includes(task.id))
+
+  const bulkComplete = () => {
+    for (const task of selectedTasks) setTaskStatus(task.id, 'Completed')
+    toast.success(`Completed ${selectedTasks.length} task${selectedTasks.length === 1 ? '' : 's'}`)
+    exitSelection()
+  }
+
+  const bulkSnooze = (days: number) => {
+    for (const task of selectedTasks) snoozeTask(task.id, days)
+    toast.success(
+      `Pushed ${selectedTasks.length} task${selectedTasks.length === 1 ? '' : 's'} by ${days} day${days === 1 ? '' : 's'}`,
+    )
+    exitSelection()
+  }
+
+  const bulkDelete = () => {
+    const removed = selectedTasks.map((task) => deleteTask(task.id)).filter(Boolean)
+    if (removed.length === 0) return
+    showUndoToast({
+      message: `${removed.length} task${removed.length === 1 ? '' : 's'} deleted`,
+      onUndo: () => {
+        for (const task of removed) restoreTask(task!)
+        toast.success('Tasks restored')
+      },
+    })
+    exitSelection()
   }
 
   const handleDelete = (task: Task) => {
@@ -237,334 +307,408 @@ export function TasksPage() {
     <TooltipProvider delayDuration={200}>
       <Page>
         <PageHeaderBar>
-        <div className="min-w-0">
-          <PageTitle>Tasks</PageTitle>
-          <PageDescription>
-            {stats.openTasks} open · {stats.completedTasks} completed
-            {stats.overdueTasks > 0 && ` · ${stats.overdueTasks} overdue`}
-          </PageDescription>
-        </div>
-        <PageActions>
-          <Button onClick={openCreate} size="sm" aria-keyshortcuts="n">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            New task
-          </Button>
-        </PageActions>
-      </PageHeaderBar>
-
-      <PageBody className="mx-auto w-full max-w-6xl">
-        {/* Toolbar */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative flex-1 lg:max-w-sm">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <Input
-              ref={searchRef}
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search tasks and projects…"
-              aria-label="Search tasks"
-              aria-keyshortcuts="/"
-              className="pl-9 pr-9"
-            />
-            <kbd
-              aria-hidden="true"
-              className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:block"
-            >
-              /
-            </kbd>
+          <div className="min-w-0">
+            <PageTitle>Tasks</PageTitle>
+            <PageDescription>
+              {stats.openTasks} open · {stats.completedTasks} completed
+              {stats.overdueTasks > 0 && ` · ${stats.overdueTasks} overdue`}
+            </PageDescription>
           </div>
+          <PageActions>
+            <Button onClick={openCreate} size="sm" aria-keyshortcuts="n">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              New task
+            </Button>
+          </PageActions>
+        </PageHeaderBar>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-              <SelectTrigger className="w-[10.5rem]" aria-label="Filter by status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All statuses</SelectItem>
-                {TASK_STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <PageBody className="mx-auto w-full max-w-6xl">
+          {/* Toolbar */}
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1 lg:max-w-sm">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                ref={searchRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search tasks and projects…"
+                aria-label="Search tasks"
+                aria-keyshortcuts="/"
+                className="pl-9 pr-9"
+              />
+              <kbd
+                aria-hidden="true"
+                className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:block"
+              >
+                /
+              </kbd>
+            </div>
 
-            <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PriorityFilter)}>
-              <SelectTrigger className="w-[9.5rem]" aria-label="Filter by priority">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All priorities</SelectItem>
-                {TASK_PRIORITIES.map((priority) => (
-                  <SelectItem key={priority} value={priority}>
-                    {priority}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                <SelectTrigger className="w-[10.5rem]" aria-label="Filter by status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All statuses</SelectItem>
+                  {TASK_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select value={dueFilter} onValueChange={(value) => setDueFilter(value as DueFilter)}>
-              <SelectTrigger className="w-[9.5rem]" aria-label="Filter by due date">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DUE_FILTERS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {DUE_FILTER_LABELS[option]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PriorityFilter)}>
+                <SelectTrigger className="w-[9.5rem]" aria-label="Filter by priority">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All priorities</SelectItem>
+                  {TASK_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
-              <SelectTrigger className="w-[9.5rem]" aria-label="Sort tasks">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SORTS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    Sort: {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Select value={dueFilter} onValueChange={(value) => setDueFilter(value as DueFilter)}>
+                <SelectTrigger className="w-[9.5rem]" aria-label="Filter by due date">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DUE_FILTERS.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {DUE_FILTER_LABELS[option]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {filtersActive && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <X className="h-4 w-4" aria-hidden="true" />
-                Clear
-              </Button>
-            )}
+              <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
+                <SelectTrigger className="w-[9.5rem]" aria-label="Sort tasks">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORTS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      Sort: {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            <div
-              role="group"
-              aria-label="Task view"
-              className="ml-auto inline-flex items-center gap-0.5 rounded-md border border-border bg-card p-0.5"
-            >
-              {(
-                [
-                  { value: 'list', label: 'List', icon: ListTree },
-                  { value: 'board', label: 'Board', icon: Columns3 },
-                  { value: 'matrix', label: 'Matrix', icon: Grid2x2 },
-                  { value: 'schedule', label: 'Schedule', icon: CalendarDays },
-                ] as const
-              ).map(({ value, label, icon: Icon }) => (
-                <Button
-                  key={value}
-                  size="sm"
-                  variant={view === value ? 'secondary' : 'ghost'}
-                  aria-pressed={view === value}
-                  onClick={() => switchView(value)}
-                  className="h-7 gap-1.5 px-2 text-xs"
-                >
-                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                  {label}
+              {filtersActive && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  Clear
                 </Button>
-              ))}
+              )}
+
+              <Button
+                size="sm"
+                variant={selecting ? 'secondary' : 'outline'}
+                aria-pressed={selecting}
+                aria-label={selecting ? 'Leave multi-select' : 'Select multiple tasks'}
+                className="h-7 gap-1.5 text-xs"
+                onClick={() => (selecting ? exitSelection() : setSelecting(true))}
+              >
+                <SquareCheckBig className="h-3.5 w-3.5" aria-hidden="true" />
+                {selecting ? 'Done' : 'Select'}
+              </Button>
+
+              {/* The bulk bar only appears once something is selected, so
+                  "everything on screen" needs a home in the toolbar. */}
+              {selecting && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  disabled={selected.length === visibleTasks.length || visibleTasks.length === 0}
+                  onClick={selectAllVisible}
+                >
+                  Select all
+                </Button>
+              )}
+
+              <div
+                role="group"
+                aria-label="Task view"
+                className="ml-auto inline-flex items-center gap-0.5 rounded-md border border-border bg-card p-0.5"
+              >
+                {(
+                  [
+                    { value: 'list', label: 'List', icon: ListTree },
+                    { value: 'board', label: 'Board', icon: Columns3 },
+                    { value: 'matrix', label: 'Matrix', icon: Grid2x2 },
+                    { value: 'schedule', label: 'Schedule', icon: CalendarDays },
+                  ] as const
+                ).map(({ value, label, icon: Icon }) => (
+                  <Button
+                    key={value}
+                    size="sm"
+                    variant={view === value ? 'secondary' : 'ghost'}
+                    aria-pressed={view === value}
+                    onClick={() => switchView(value)}
+                    className="h-7 gap-1.5 px-2 text-xs"
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Saved views (Notion-style): the filter combination, named and reusable */}
-        <div className="flex flex-wrap items-center gap-2">
-          {savedViews.map((saved) => (
-            <span key={saved.id} className="inline-flex items-center overflow-hidden rounded-full border border-border">
-              <button
-                type="button"
-                onClick={() => applySavedView(saved)}
-                className="px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+          {/* Saved views (Notion-style): the filter combination, named and reusable */}
+          <div className="flex flex-wrap items-center gap-2">
+            {savedViews.map((saved) => (
+              <span
+                key={saved.id}
+                className="inline-flex items-center overflow-hidden rounded-full border border-border"
               >
-                {saved.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteSavedView(saved.id)}
-                aria-label={`Delete saved view ${saved.name}`}
-                className="border-l border-border px-1.5 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-destructive"
-              >
-                ×
-              </button>
-            </span>
-          ))}
-          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={() => setSaveOpen(true)}>
-            <Save className="h-3.5 w-3.5" aria-hidden="true" />
-            Save this view
-          </Button>
-        </div>
+                <button
+                  type="button"
+                  onClick={() => applySavedView(saved)}
+                  className="px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+                >
+                  {saved.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteSavedView(saved.id)}
+                  aria-label={`Delete saved view ${saved.name}`}
+                  className="border-l border-border px-1.5 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-destructive"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={() => setSaveOpen(true)}>
+              <Save className="h-3.5 w-3.5" aria-hidden="true" />
+              Save this view
+            </Button>
+          </div>
 
-        {view === 'board' ? (
-          <BoardView tasks={visibleTasks} onEdit={openEdit} />
-        ) : view === 'matrix' ? (
-          <MatrixView tasks={visibleTasks} onEdit={openEdit} />
-        ) : view === 'schedule' ? (
-          <ScheduleView tasks={visibleTasks} onOpen={(task) => setDetailId(task.id)} />
-        ) : (
-        <Card className="overflow-hidden">
-          {tasks.length === 0 ? (
-            <EmptyState
-              icon={<CheckSquare className="h-5 w-5" aria-hidden="true" />}
-              title="No tasks yet"
-              description="Create your first task to start tracking work across the workspace."
-              action={{ label: 'New task', onClick: openCreate }}
-              className="py-12"
-            />
-          ) : visibleTasks.length === 0 ? (
-            <EmptyState
-              icon={<ListFilter className="h-5 w-5" aria-hidden="true" />}
-              title="No matching tasks"
-              description="Try a different search term or clear the filters."
-              action={{ label: 'Clear filters', onClick: clearFilters }}
-              className="py-12"
-            />
+          {view === 'board' ? (
+            <BoardView tasks={visibleTasks} onEdit={openEdit} />
+          ) : view === 'matrix' ? (
+            <MatrixView tasks={visibleTasks} onEdit={openEdit} />
+          ) : view === 'schedule' ? (
+            <ScheduleView tasks={visibleTasks} onOpen={(task) => setDetailId(task.id)} />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[42rem] text-left text-sm">
-                <caption className="sr-only">Tasks in your workspace, with project, priority, status and due date</caption>
-                <thead className="border-b border-border bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <tr>
-                    <th scope="col" className="w-10 px-4 py-3">
-                      <span className="sr-only">Complete</span>
-                    </th>
-                    <th scope="col" className="px-4 py-3">Task</th>
-                    <th scope="col" className="hidden px-4 py-3 sm:table-cell">Project</th>
-                    <th scope="col" className="hidden px-4 py-3 md:table-cell">Priority</th>
-                    <th scope="col" className="px-4 py-3">Status</th>
-                    <th scope="col" className="hidden px-4 py-3 lg:table-cell">Due</th>
-                    <th scope="col" className="w-[6.5rem] px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {visibleTasks.map((task) => {
-                    const isDone = task.status === 'Completed'
-                    const due = describeDueDate(task.dueDate, isDone)
-                    return (
-                      <tr key={task.id} className="group transition-colors hover:bg-muted/40">
-                        <td className="px-4 py-3 align-top">
-                          <Checkbox
-                            checked={isDone}
-                            onCheckedChange={() => toggleTaskStatus(task.id)}
-                            aria-label={`Mark “${task.title}” as ${isDone ? 'incomplete' : 'complete'}`}
-                            className="mt-0.5"
-                          />
-                        </td>
+            <div className="space-y-3">
+              {/* Bulk actions (Todoist's multi-select): one bar, one decision, N tasks. */}
+              {selecting && (
+                <BulkActions
+                  count={selected.length}
+                  onClear={exitSelection}
+                  actions={[
+                    { label: 'Complete', onClick: bulkComplete },
+                    { label: 'Push a day', onClick: () => bulkSnooze(1) },
+                    { label: 'Push a week', onClick: () => bulkSnooze(7) },
+                    { label: 'Delete', variant: 'destructive', onClick: bulkDelete },
+                  ]}
+                />
+              )}
 
-                        <td className="px-4 py-3 align-top">
-                          <button
-                            type="button"
-                            onClick={() => setDetailId(task.id)}
-                            className={
-                              isDone
-                                ? 'text-left font-medium text-muted-foreground line-through hover:underline'
-                                : 'text-left font-medium text-foreground hover:underline'
-                            }
-                            aria-label={`Open “${task.title}”`}
-                          >
-                            {task.title}
-                          </button>
-                          {/* Context that is hidden from the narrower layouts. */}
-                          <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:hidden">
-                            <span className="text-xs text-muted-foreground">
-                              {task.project === UNASSIGNED_PROJECT ? 'No project' : task.project}
-                            </span>
-                            <PriorityPill priority={task.priority} />
-                          </div>
-                          <div className="mt-1 lg:hidden">
-                            <DueDatePill label={due.label} tone={due.tone} />
-                          </div>
-                        </td>
-
-                        <td className="hidden px-4 py-3 align-top text-muted-foreground sm:table-cell">
-                          {task.project === UNASSIGNED_PROJECT ? '—' : task.project}
-                        </td>
-
-                        <td className="hidden px-4 py-3 align-top md:table-cell">
-                          <PriorityPill priority={task.priority} />
-                        </td>
-
-                        <td className="px-4 py-3 align-top">
-                          <Select
-                            value={task.status}
-                            onValueChange={(value) => setTaskStatus(task.id, value as TaskStatus)}
-                          >
-                            {/* The trigger itself wears the status pill styling. */}
-                            <SelectTrigger
+              <Card className="overflow-hidden">
+                {tasks.length === 0 ? (
+                  <EmptyState
+                    icon={<CheckSquare className="h-5 w-5" aria-hidden="true" />}
+                    title="No tasks yet"
+                    description="Create your first task to start tracking work across the workspace."
+                    action={{ label: 'New task', onClick: openCreate }}
+                    className="py-12"
+                  />
+                ) : visibleTasks.length === 0 ? (
+                  <EmptyState
+                    icon={<ListFilter className="h-5 w-5" aria-hidden="true" />}
+                    title="No matching tasks"
+                    description="Try a different search term or clear the filters."
+                    action={{ label: 'Clear filters', onClick: clearFilters }}
+                    className="py-12"
+                  />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[42rem] text-left text-sm">
+                      <caption className="sr-only">
+                        Tasks in your workspace, with project, priority, status and due date
+                      </caption>
+                      <thead className="border-b border-border bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+                        <tr>
+                          <th scope="col" className="w-10 px-4 py-3">
+                            <span className="sr-only">Complete</span>
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            Task
+                          </th>
+                          <th scope="col" className="hidden px-4 py-3 sm:table-cell">
+                            Project
+                          </th>
+                          <th scope="col" className="hidden px-4 py-3 md:table-cell">
+                            Priority
+                          </th>
+                          <th scope="col" className="px-4 py-3">
+                            Status
+                          </th>
+                          <th scope="col" className="hidden px-4 py-3 lg:table-cell">
+                            Due
+                          </th>
+                          <th scope="col" className="w-[6.5rem] px-4 py-3 text-right">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {visibleTasks.map((task) => {
+                          const isDone = task.status === 'Completed'
+                          const due = describeDueDate(task.dueDate, isDone)
+                          return (
+                            <tr
+                              key={task.id}
                               className={cn(
-                                pillBase,
-                                taskStatusTone[task.status],
-                                'h-7 w-auto gap-1 px-2 shadow-none [&>span]:truncate [&>svg]:h-3 [&>svg]:w-3',
+                                'group transition-colors hover:bg-muted/40',
+                                selecting && selected.includes(task.id) && 'bg-primary/5',
                               )}
-                              aria-label={`Status for “${task.title}”`}
                             >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TASK_STATUSES.map((status) => (
-                                <SelectItem key={status} value={status}>
-                                  {status}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </td>
+                              <td className="px-4 py-3 align-top">
+                                {selecting ? (
+                                  <Checkbox
+                                    checked={selected.includes(task.id)}
+                                    onCheckedChange={() => toggleSelected(task.id)}
+                                    aria-label={`Select “${task.title}”`}
+                                    className="mt-0.5"
+                                  />
+                                ) : (
+                                  <Checkbox
+                                    checked={isDone}
+                                    onCheckedChange={() => toggleTaskStatus(task.id)}
+                                    aria-label={`Mark “${task.title}” as ${isDone ? 'incomplete' : 'complete'}`}
+                                    className="mt-0.5"
+                                  />
+                                )}
+                              </td>
 
-                        <td className="hidden px-4 py-3 align-top lg:table-cell">
-                          <DueDatePill label={due.label} tone={due.tone} />
-                        </td>
-
-                        <td className="px-4 py-3 align-top text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                                  onClick={() => openEdit(task)}
-                                  aria-label={`Edit “${task.title}”`}
+                              <td className="px-4 py-3 align-top">
+                                <button
+                                  type="button"
+                                  onClick={() => (selecting ? toggleSelected(task.id) : setDetailId(task.id))}
+                                  className={
+                                    isDone
+                                      ? 'text-left font-medium text-muted-foreground line-through hover:underline'
+                                      : 'text-left font-medium text-foreground hover:underline'
+                                  }
+                                  aria-label={`Open “${task.title}”`}
                                 >
-                                  <Pencil className="h-4 w-4" aria-hidden="true" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Edit task</TooltipContent>
-                            </Tooltip>
+                                  {task.title}
+                                </button>
+                                {/* Context that is hidden from the narrower layouts. */}
+                                <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:hidden">
+                                  <span className="text-xs text-muted-foreground">
+                                    {task.project === UNASSIGNED_PROJECT ? 'No project' : task.project}
+                                  </span>
+                                  <PriorityPill priority={task.priority} />
+                                </div>
+                                <div className="mt-1 lg:hidden">
+                                  <DueDatePill label={due.label} tone={due.tone} />
+                                </div>
+                              </td>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                                  onClick={() => handleDelete(task)}
-                                  aria-label={`Delete “${task.title}”`}
+                              <td className="hidden px-4 py-3 align-top text-muted-foreground sm:table-cell">
+                                {task.project === UNASSIGNED_PROJECT ? '—' : task.project}
+                              </td>
+
+                              <td className="hidden px-4 py-3 align-top md:table-cell">
+                                <PriorityPill priority={task.priority} />
+                              </td>
+
+                              <td className="px-4 py-3 align-top">
+                                <Select
+                                  value={task.status}
+                                  onValueChange={(value) => setTaskStatus(task.id, value as TaskStatus)}
                                 >
-                                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Delete task</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                                  {/* The trigger itself wears the status pill styling. */}
+                                  <SelectTrigger
+                                    className={cn(
+                                      pillBase,
+                                      taskStatusTone[task.status],
+                                      'h-7 w-auto gap-1 px-2 shadow-none [&>span]:truncate [&>svg]:h-3 [&>svg]:w-3',
+                                    )}
+                                    aria-label={`Status for “${task.title}”`}
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {TASK_STATUSES.map((status) => (
+                                      <SelectItem key={status} value={status}>
+                                        {status}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </td>
+
+                              <td className="hidden px-4 py-3 align-top lg:table-cell">
+                                <DueDatePill label={due.label} tone={due.tone} />
+                              </td>
+
+                              <td className="px-4 py-3 align-top text-right">
+                                <div className="flex items-center justify-end gap-1">
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                                        onClick={() => openEdit(task)}
+                                        aria-label={`Edit “${task.title}”`}
+                                      >
+                                        <Pencil className="h-4 w-4" aria-hidden="true" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Edit task</TooltipContent>
+                                  </Tooltip>
+
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                                        onClick={() => handleDelete(task)}
+                                        aria-label={`Delete “${task.title}”`}
+                                      >
+                                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Delete task</TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Card>
             </div>
           )}
-        </Card>
-        )}
 
-        {filtersActive && visibleTasks.length > 0 && (
-          <p className="text-xs text-muted-foreground" aria-live="polite">
-            Showing {visibleTasks.length} of {tasks.length} tasks
-          </p>
-        )}
-      </PageBody>
-    </Page>
+          {filtersActive && visibleTasks.length > 0 && (
+            <p className="text-xs text-muted-foreground" aria-live="polite">
+              Showing {visibleTasks.length} of {tasks.length} tasks
+            </p>
+          )}
+        </PageBody>
+      </Page>
 
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent className="max-w-md">
@@ -595,17 +739,17 @@ export function TasksPage() {
         </DialogContent>
       </Dialog>
 
-    <TaskDetailPanel taskId={detailId} onOpenChange={(open) => !open && setDetailId(null)} />
+      <TaskDetailPanel taskId={detailId} onOpenChange={(open) => !open && setDetailId(null)} />
 
-    <TaskDialog
-      open={dialog.open}
-      onOpenChange={(open) => {
-        setDialog((prev) => ({ ...prev, open }))
-        if (!open) setDefaultProject(undefined)
-      }}
-      task={dialog.task}
-      defaultProject={defaultProject}
-    />
+      <TaskDialog
+        open={dialog.open}
+        onOpenChange={(open) => {
+          setDialog((prev) => ({ ...prev, open }))
+          if (!open) setDefaultProject(undefined)
+        }}
+        task={dialog.task}
+        defaultProject={defaultProject}
+      />
     </TooltipProvider>
   )
 }

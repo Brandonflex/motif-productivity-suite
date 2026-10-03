@@ -185,6 +185,59 @@ describe('TasksPage', () => {
     expect(within(panel).getByLabelText('Notes')).toBeInTheDocument()
   })
 
+  it('bulk-completes every selected task from one bar', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({
+      tasks: [
+        taskFixture({ id: 'a', title: 'Invoice one' }),
+        taskFixture({ id: 'b', title: 'Invoice two' }),
+        taskFixture({ id: 'c', title: 'Leave me alone' }),
+      ],
+    })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Select multiple tasks' }))
+
+    await user.click(screen.getByRole('checkbox', { name: 'Select “Invoice one”' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Select “Invoice two”' }))
+    expect(screen.getByText('2 selected')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Complete' }))
+
+    // Selection mode exits, and only the picked work is done.
+    expect(screen.queryByRole('button', { name: 'Complete' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Mark “Invoice one” as incomplete' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Mark “Invoice two” as incomplete' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Mark “Leave me alone” as complete' })).not.toBeChecked()
+  })
+
+  it('bulk-pushes and bulk-deletes with one undo for the whole batch', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({
+      tasks: [
+        taskFixture({ id: 'a', title: 'Slipping one', dueDate: '2026-03-05' }),
+        taskFixture({ id: 'b', title: 'Slipping two', dueDate: '2026-03-05' }),
+      ],
+    })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Select multiple tasks' }))
+    await user.click(screen.getByRole('button', { name: 'Select all' }))
+    expect(screen.getByText('2 selected')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Push a week' }))
+    expect(await screen.findByText('Slipping one')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Select multiple tasks' }))
+    await user.click(screen.getByRole('button', { name: 'Select all' }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+    expect(await screen.findByText('2 tasks deleted')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /undo/i }))
+    expect(await screen.findByText('Tasks restored')).toBeInTheDocument()
+    expect(screen.getByText('Slipping one')).toBeInTheDocument()
+  })
+
   it('remembers the chosen view across renders', async () => {
     const user = userEvent.setup()
     seedWorkspace({ tasks: [taskFixture({ title: 'Persisted view' })] })

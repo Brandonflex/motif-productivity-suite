@@ -15,19 +15,21 @@
 
 ## What it does
 
-| Area            | Capability                                                                                                                                                                                                                                   |
-| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Dashboard**   | Momentum score, workload against capacity, due-today focus, an "up next" queue sorted by real due dates, a task-pipeline breakdown and per-project rollups.                                                                                  |
-| **Today**       | A morning planning ritual (pick what today is actually for, with an over-capacity warning), auto-scheduled blocks inside your working window, a pomodoro-style focus timer and an evening shutdown that rolls unfinished work into tomorrow. |
-| **Inbox**       | Linear-style triage: capture first, decide later. Each item can be dated, assigned, promoted to the task list, or parked on the Someday shelf.                                                                                               |
-| **Upcoming**    | The next three weeks, day by day, with overdue work at the top, a Someday shelf for undated work, recurrence badges and one-click reschedule.                                                                                                |
-| **Tasks**       | **Four views of one dataset** — list, board (with WIP limits), Eisenhower matrix and a seven-day schedule canvas. Natural-language quick add, saved views, due-date filters, five sorts, dependencies, tags, energy and estimates.           |
-| **Task detail** | A side inspector for everything about one task: dates, times, recurrence, tags, notes, dependencies, real focus time against the estimate, complete/delete with undo.                                                                        |
-| **Projects**    | Group related tasks, drag progress or derive it automatically from completed work, set a target date, pause or archive, and see remaining effort against the deadline.                                                                       |
-| **Insights**    | Four weeks of momentum, a completion heatmap, focus split by task, capacity and project rollups, plus a weekly review summary.                                                                                                               |
-| **Automations** | No-code rules (Trello/Butler style): when a task is created, completed or moved, then set its priority, status, energy, tags, project or schedule it a few days out. Starter presets included.                                               |
-| **Settings**    | Light/dark/system theme, focus and capacity defaults, working hours, chime and rollover preferences, JSON export **and** import with validation, workspace reset behind a confirmation dialog, and local-storage health reporting.           |
-| **Data**        | Versioned `localStorage` persistence, per-row revision clocks for conflict-free merges, tombstones, automatic migration of v1/v2 data, corruption recovery, cross-tab merge, and download/restore backups.                                   |
+| Area            | Capability                                                                                                                                                                                                                                                                                                                                  |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Dashboard**   | Momentum score, workload against capacity, due-today focus, an "up next" queue sorted by real due dates, a task-pipeline breakdown and per-project rollups.                                                                                                                                                                                 |
+| **Today**       | A morning planning ritual (pick what today is actually for, with an over-capacity warning), auto-scheduled blocks inside your working window, three rings that answer the day at a glance, a pomodoro-style focus timer, an evening shutdown that rolls unfinished work into tomorrow, and a one-click `.ics` export of the committed plan. |
+| **Inbox**       | Linear-style triage: capture first, decide later. Each item can be dated, assigned, promoted to the task list, or parked on the Someday shelf.                                                                                                                                                                                              |
+| **Upcoming**    | The next three weeks, day by day, with overdue work at the top, a Someday shelf for undated work, recurrence badges and one-click reschedule.                                                                                                                                                                                               |
+| **Tasks**       | **Four views of one dataset** — list, board (with WIP limits), Eisenhower matrix and a seven-day schedule canvas. Natural-language quick add, saved views, due-date filters, five sorts, multi-select bulk actions, dependencies, tags, energy and estimates.                                                                               |
+| **Task detail** | A side inspector for everything about one task: dates, times, recurrence, tags, notes, dependencies, real focus time against the estimate, complete/delete with undo.                                                                                                                                                                       |
+| **Projects**    | Group related tasks, drag progress or derive it automatically from completed work, set a target date, pause or archive, and see remaining effort against the deadline.                                                                                                                                                                      |
+| **Insights**    | Four weeks of momentum, a completion heatmap, focus split by task, capacity and project rollups, a weekly review summary, plus the rhythm graph and the badge shelf.                                                                                                                                                                        |
+| **Moments**     | A weekend-safe streak, ten ranks and sixteen badges across four tiers, a rhythm graph tinted by the kind of work each day was made of, and a celebration that fires exactly once per unlock.                                                                                                                                                |
+| **Reminders**   | Derived from the tasks themselves: a nudge shortly before a pinned time, an optional desktop notification, and one daily check-in that is silent once the day is already planned.                                                                                                                                                           |
+| **Automations** | No-code rules (Trello/Butler style): when a task is created, completed or moved, then set its priority, status, energy, tags, project or schedule it a few days out. Starter presets included.                                                                                                                                              |
+| **Settings**    | Light/dark/system theme, focus and capacity defaults, working hours, reminder lead time and check-in hour, chime and rollover preferences, JSON export **and** import with validation, workspace reset behind a confirmation dialog, and local-storage health reporting.                                                                    |
+| **Data**        | Versioned `localStorage` persistence, per-row revision clocks for conflict-free merges, tombstones, automatic migration of v1/v2 data, corruption recovery, cross-tab merge, and download/restore backups.                                                                                                                                  |
 
 Everything is client-side. There is no backend, no account, and no analytics — the app works offline and survives a
 reload.
@@ -56,6 +58,96 @@ implemented here.
 
 Everything is client-side. There is no backend, no account, and no analytics — the app works offline and survives a
 reload.
+
+---
+
+## Momentum you can feel
+
+Tracking is the easy half of a productivity app; the hard half is being worth opening on a Wednesday. Motif answers that
+with a streak layer whose heritage is GitHub's contribution graph, and whose execution is deliberately not a wall of
+green squares.
+
+### The rhythm graph, not a heatmap
+
+The graph keeps what makes a contribution calendar work — one cell per day, a year at a glance — and changes what a cell
+means:
+
+- **Colour is the kind of work, not the volume.** Each day is filled with the flavour it was mostly made of: `deep`,
+  `admin` or `light`, three tokens that exist in both themes. A month of deep work and a month of admin read
+  differently at a glance, which is the question that actually changes behaviour.
+- **Density is how much**, in four token-driven steps scaled to the busiest day in view.
+- **Rest days are drawn, not blank.** A day you chose not to work is a hollow ring; an ordinary quiet day is a faint
+  one. The graph never implies that stillness is a gap in your record.
+- **Today is alive.** The current cell is ringed and breathes while the day is still open — a nudge, not a verdict.
+- **Every cell is a button with a sentence.** Hover or focus reads "2026-03-05 · 3 finished · mostly deep work · 2h
+  focus". Colour is never the only signal, and `prefers-reduced-motion` stills the reveals.
+
+### Streaks that survive a real life
+
+- Weekends never break a run; the streak counts _active_ days, and a Saturday off is not a failure.
+- Every seven active days bank a **shield** (up to three). A shield absorbs one missed weekday without the count
+  advancing — a budget for being ill, busy or human.
+- Milestones (3, 7, 14, 21, 30, 50, 75, 100, 150, 200, 365) drive the next-badge copy, so there is always a number
+  worth reaching that is not "more".
+
+### Ranks, badges and one party each
+
+Ten ranks run from **Sketchbook** to **Motif Master**, awarded for the work itself — completions, focused minutes,
+days you actually planned, shutdowns, on-time delivery — never for opening the app. Sixteen badges sit across bronze,
+silver, gold and legendary tiers; each one flips when tapped to show exactly what it takes and how far along it is.
+Unlocks are replayed day by day from your own history, so they land on the date the work happened, and the celebration
+(confetti, then a toast that names the badge) fires **exactly once** — the first run after installing records a silent
+baseline instead of a confetti storm for work already done.
+
+### Where the rings are, and why
+
+A ring answers "how far along" faster than a bar when several sit together, and it survives being shrunk. Three
+placements, each earning its space:
+
+| Ring                              | Lives on               | Question it answers                                                    |
+| :-------------------------------- | :--------------------- | :--------------------------------------------------------------------- |
+| Focus goal / capacity / streak    | Today, side by side    | "Have I done enough, is the plan realistic, am I on a run?"            |
+| Interval progress                 | Focus timer            | "How much of this interval is left?" — a sweeping arc around the clock |
+| Rank, badge progress, streak chip | Sidebar footer, badges | "Where am I overall?" without leaving the page                         |
+
+Measured comparisons stay as bars (capacity, completion, project rollups) — a ring is a gauge, not a replacement for a
+chart.
+
+### Motion and depth, with an off switch
+
+Depth comes from four cheap tricks that never touch the network: a fixed aurora backdrop behind the app, pointer-tilt
+stat cards (a real transform driven by CSS custom properties, plus a gradient glare), flip cards for badges, and
+canvas confetti on unlocks. Everything animated is CSS, SVG or a single `requestAnimationFrame` burst — no 3D library,
+no CDN, no per-frame React re-render, and nothing that violates the strict CSP in `vercel.json`.
+
+The contract is simple: **decoration never blocks work, and reduced motion wins.** One global media query stills every
+keyframe, and the JavaScript effects ask `useReducedMotion()` before they run, so a user who has asked their system for
+calm gets a calm, fully functional app.
+
+### The mark
+
+`public/favicon.svg` and `src/components/brand/MotifMark.tsx` are the same drawing:
+
+- **The rosette** — one petal, repeated six times. A _motif_ is a figure that repeats, so the logo is built from a
+  single repeated stroke: the same small piece of work, coming back around. It is also, exactly, what a habit is.
+- **The braid** — two ribbons crossing through the middle, one warm, one cool. Balance: effort **and** recovery,
+  productivity **and** play. They are drawn as one looping path, because a routine closes and starts again.
+- **The beat** — a pulsing core, a metronome for the day.
+- **The spark** — an orbiting dot: the next capture, the next small start.
+
+That reads twice, which is the point: the _name_ is about repetition, the _balance_ is the two inspirations the suite
+borrows from — the disciplined systems (Todoist, Asana, Motion) and the humane ones (Sunsama, Things, Reclaim). The
+mark animates (slow rosette rotation, counter-rotating ticks, a drawn braid, a heartbeat) and accepts `animated={false}`
+for dense lists, print and favicons.
+
+### Reminders without a scheduler
+
+Reminders are **derived**, not stored: a task with a pinned time knows when it needs attention, so there is no second
+object to keep in sync and nothing to clean up when work is completed or deleted. One 30-second interval covers the
+whole app and announces a task inside its lead window (5–60 minutes, configurable) or up to half an hour after the
+time, so a reminder that arrived while the tab was closed is still useful when it opens. Each announcement is recorded
+once. Desktop notifications are strictly opt-in and asked for in context, in Settings; the in-app toast is the default
+and needs no permission at all.
 
 ---
 
@@ -115,11 +207,13 @@ src/
 ├── index.css                   # Tailwind layers + base styles
 ├── styles/tokens.css           # Design tokens (light, dark + prefers-color-scheme)
 ├── components/
-│   ├── app-shell/              # Shell, sidebar rail, theme switch
+│   ├── app-shell/              # Shell, sidebar rail, theme switch, aurora backdrop
+│   ├── brand/                  # The Motif mark (rosette + braid, animated)
 │   ├── command-palette/        # ⌘K palette + global shortcut wiring
 │   ├── feedback/               # Error boundary, suspense skeleton
+│   ├── fx/                     # Canvas confetti (reduced-motion aware)
 │   ├── quick-add/              # Natural-language capture field + dialog
-│   └── ui/                     # ConfirmDialog, pills, pill tones, undo toast
+│   └── ui/                     # ConfirmDialog, pills, ProgressRing, TiltCard, undo toast
 ├── features/
 │   ├── workspace/              # Store: provider, context contract, useWorkspace hook
 │   ├── dashboard/              # Workload overview
@@ -128,13 +222,16 @@ src/
 │   ├── upcoming/               # Three-week schedule + Someday shelf
 │   ├── tasks/                  # Views (list/board/matrix/schedule), dialog, inspector
 │   ├── projects/               # Project grid + create/edit dialog
-│   ├── focus/                  # Focus timer
-│   ├── insights/               # Momentum, heatmap, capacity, rollups
-│   └── settings/               # Appearance, planning, automations, data, health
+│   ├── focus/                  # Focus timer (ring-driven interval)
+│   ├── achievements/           # Streak, rank, badge shelf, rhythm graph
+│   ├── reminders/              # Reminder loop (tests; logic lives in lib/reminders)
+│   ├── insights/               # Momentum, heatmap, rhythm, badges, rollups
+│   └── settings/               # Appearance, planning, reminders, automations, data, health
 │                               # (each view ships its own *.test.tsx)
-├── hooks/                      # useDocumentTitle, useHotkeys
-├── lib/                        # storage, dates, ids, theme, sidebar, cn,
-│                               # quick-add, recurrence, plan, rules, analytics, filters
+├── hooks/                      # useDocumentTitle, useHotkeys, useReducedMotion, useReminders
+├── lib/                        # storage, dates, ids, theme, sidebar, cn, quick-add,
+│                               # recurrence, plan, rules, analytics, filters, achievements,
+│                               # rhythm, reminders, ics
 ├── routes/                     # NotFoundPage
 ├── test/                       # Vitest setup + render helpers/fixtures
 └── types/workspace.ts          # zod schemas → inferred Task/Project/backup types
@@ -226,8 +323,12 @@ dark-mode user sees the right colours on the very first paint — before any Jav
 | `npm run lint:css` / `lint:css:fix` | Stylelint (design-system CSS)                                      |
 | `npm run check:tokens`              | Design-token + contrast guardrail                                  |
 | `npm test` / `npm run test:watch`   | Vitest (jsdom)                                                     |
+| `npm run test:coverage`             | The same suite with a v8 coverage report                           |
 | `npm run lint`                      | Types + ESLint + Stylelint + tokens                                |
 | `npm run verify`                    | Lint + tests + build — the full gate                               |
+
+The suite is **29 files / 270 tests** and covers **83.6 % of statements**, 76 % of branches and 85.7 % of lines —
+concentrated where the logic is (`src/lib/**`), with the views covered through the routes users actually take.
 
 `.github/workflows/ci.yml` runs `npm run lint`, `npm test` and `npm run build` on every push and pull request to
 `main`, then uploads the `dist/` artifact. (Note: GitHub only reads workflows from `.github/workflows/` — an earlier
@@ -315,9 +416,10 @@ Deliberately not shipped yet — these are the natural next steps, and the store
 - Backend sync or auth (everything is local-only today, by design).
 - Pointer-based drag-and-reorder inside the board (the schedule canvas already accepts drops; `@dnd-kit` is not needed
   for the HTML5 drag-and-drop MVP that shipped).
-- Reminders and notifications, bulk multi-select actions.
-- Test-time coverage reporting and visual-regression tests.
-- A habit tracker and calendar (ICS) export from `planDay`'s blocks.
+- Visual-regression tests (the suite runs in jsdom; there is no headless browser in the pipeline yet).
+- A standalone habit tracker — the rhythm graph and streak layer cover the daily-habit case today, without a second
+  list to maintain.
+- Editing a task's pinned time by dragging the block on the schedule canvas (dragging between days already works).
 
 ---
 

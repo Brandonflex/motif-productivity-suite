@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Local-first productivity suite \u2014 tasks, projects and workspace analytics.",
+  "description": "Local-first productivity suite — tasks, projects and workspace analytics.",
   "engines": {
     "node": ">=20.19",
     "npm": ">=10"
@@ -22,6 +22,7 @@
     "lint": "npm run lint:types && npm run lint:js && npm run lint:css && npm run check:tokens",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "verify": "npm run lint && npm run test && npm run build"
   },
   "devDependencies": {
@@ -34,6 +35,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
+    "@vitest/coverage-v8": "^5.0.3",
     "autoprefixer": "^10.5.4",
     "eslint": "^9.39.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",

@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@blinkdotnew/ui";
-import { CalendarDays, GripVertical, TriangleAlert } from "lucide-react";
-import { PriorityPill } from "@/components/ui/Pills";
-import { useWorkspace } from "@/features/workspace/useWorkspace";
-import { addDaysIso, formatMinutes, minutesToClock, todayIso } from "@/lib/dates";
-import { planDay } from "@/lib/plan";
-import { cn } from "@/lib/utils";
-import type { Task } from "@/types/workspace";
+import { useMemo, useState } from 'react'
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@blinkdotnew/ui'
+import { CalendarDays, GripVertical, TriangleAlert } from 'lucide-react'
+import { PriorityPill } from '@/components/ui/Pills'
+import { useWorkspace } from '@/features/workspace/useWorkspace'
+import { addDaysIso, formatMinutes, minutesToClock, todayIso } from '@/lib/dates'
+import { planDay } from '@/lib/plan'
+import { cn } from '@/lib/utils'
+import type { Task } from '@/types/workspace'
 
 /**
  * Schedule (Motion's auto-scheduling, on a seven-day canvas).
@@ -17,57 +17,57 @@ import type { Task } from "@/types/workspace";
  * moved with the keyboard through the select next to it — which is the
  * drag-to-insert habit from Things and Todoist.
  */
-const HORIZON_DAYS = 7;
-const PX_PER_MINUTE = 0.9;
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const DROP_FORMAT = "text/plain";
+const HORIZON_DAYS = 7
+const PX_PER_MINUTE = 0.9
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DROP_FORMAT = 'text/plain'
 
 function dayHeading(day: string, today: string): string {
-  if (day === today) return "Today";
-  if (day === addDaysIso(today, 1)) return "Tomorrow";
-  const date = new Date(`${day}T12:00:00.000Z`);
-  return WEEKDAYS[date.getUTCDay()] ?? day;
+  if (day === today) return 'Today'
+  if (day === addDaysIso(today, 1)) return 'Tomorrow'
+  const date = new Date(`${day}T12:00:00.000Z`)
+  return WEEKDAYS[date.getUTCDay()] ?? day
 }
 
 export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: Task) => void }) {
-  const { settings, updateTask } = useWorkspace();
-  const [dragOver, setDragOver] = useState("");
+  const { settings, updateTask } = useWorkspace()
+  const [dragOver, setDragOver] = useState('')
 
-  const today = todayIso();
-  const days = useMemo(() => Array.from({ length: HORIZON_DAYS }, (_, index) => addDaysIso(today, index)), [today]);
+  const today = todayIso()
+  const days = useMemo(() => Array.from({ length: HORIZON_DAYS }, (_, index) => addDaysIso(today, index)), [today])
 
   const backlog = useMemo(
     () =>
       tasks
-        .filter((task) => task.status !== "Completed" && !task.dueDate)
+        .filter((task) => task.status !== 'Completed' && !task.dueDate)
         .sort((a, b) => a.title.localeCompare(b.title)),
     [tasks],
-  );
+  )
 
   const columns = useMemo(
     () =>
       days.map((day) => {
         const scheduled = tasks.filter((task) => {
-          if (task.status === "Completed" || !task.dueDate) return false;
-          if (task.dueDate === day) return true;
+          if (task.status === 'Completed' || !task.dueDate) return false
+          if (task.dueDate === day) return true
           // Carried-over work belongs to today, not to every future day.
-          return day === today && task.dueDate < today;
-        });
-        return { day, ...planDay(scheduled, settings, new Date(`${day}T12:00:00.000Z`)) };
+          return day === today && task.dueDate < today
+        })
+        return { day, ...planDay(scheduled, settings, new Date(`${day}T12:00:00.000Z`)) }
       }),
     [days, settings, tasks, today],
-  );
+  )
 
   const schedule = (taskId: string, dueDate: string) => {
-    updateTask(taskId, { dueDate, startDate: "" });
-  };
+    updateTask(taskId, { dueDate, startDate: '' })
+  }
 
   const onDrop = (day: string) => (event: React.DragEvent) => {
-    event.preventDefault();
-    setDragOver("");
-    const taskId = event.dataTransfer?.getData(DROP_FORMAT);
-    if (taskId) schedule(taskId, day);
-  };
+    event.preventDefault()
+    setDragOver('')
+    const taskId = event.dataTransfer?.getData(DROP_FORMAT)
+    if (taskId) schedule(taskId, day)
+  }
 
   return (
     <div className="space-y-4">
@@ -85,8 +85,8 @@ export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: 
         <CardContent className="space-y-2">
           <p className="text-xs text-muted-foreground">
             {backlog.length === 0
-              ? "Nothing is waiting for a date — every open task has a day."
-              : `${backlog.length} task${backlog.length === 1 ? "" : "s"} waiting for a date. Drag one onto a day, or pick a day from its menu.`}
+              ? 'Nothing is waiting for a date — every open task has a day.'
+              : `${backlog.length} task${backlog.length === 1 ? '' : 's'} waiting for a date. Drag one onto a day, or pick a day from its menu.`}
           </p>
 
           <ul className="flex flex-wrap gap-2">
@@ -136,13 +136,13 @@ export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: 
             aria-label={`${dayHeading(day, today)} ${day}, ${blocks.length} blocks`}
             className="min-w-[11rem]"
             onDragOver={(event) => {
-              event.preventDefault();
-              setDragOver(day);
+              event.preventDefault()
+              setDragOver(day)
             }}
-            onDragLeave={() => setDragOver((current) => (current === day ? "" : current))}
+            onDragLeave={() => setDragOver((current) => (current === day ? '' : current))}
             onDrop={onDrop(day)}
           >
-            <Card className={cn("flex h-full flex-col", dragOver === day && "border-primary/60 bg-primary/5")}>
+            <Card className={cn('flex h-full flex-col', dragOver === day && 'border-primary/60 bg-primary/5')}>
               <CardHeader className="space-y-1 pb-2">
                 <CardTitle className="flex items-center justify-between text-sm">
                   <span>{dayHeading(day, today)}</span>
@@ -150,7 +150,7 @@ export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: 
                 </CardTitle>
                 <p className="text-[11px] text-muted-foreground">
                   {formatMinutes(committedMinutes)} of {formatMinutes(capacityMinutes)}
-                  {deferred.length > 0 ? ` · ${deferred.length} waiting` : ""}
+                  {deferred.length > 0 ? ` · ${deferred.length} waiting` : ''}
                 </p>
               </CardHeader>
 
@@ -180,8 +180,8 @@ export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: 
                       key={block.task.id}
                       onClick={() => onOpen(block.task)}
                       className={cn(
-                        "absolute inset-x-0.5 overflow-hidden rounded border px-1.5 py-1 text-left",
-                        block.pinned ? "border-primary/60 bg-primary/15" : "border-primary/30 bg-primary/10",
+                        'absolute inset-x-0.5 overflow-hidden rounded border px-1.5 py-1 text-left',
+                        block.pinned ? 'border-primary/60 bg-primary/15' : 'border-primary/30 bg-primary/10',
                       )}
                       style={{
                         top: (block.startMinute - windowStart) * PX_PER_MINUTE,
@@ -224,5 +224,5 @@ export function ScheduleView({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: 
         ))}
       </div>
     </div>
-  );
+  )
 }
