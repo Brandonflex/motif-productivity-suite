@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { describeReminder, dueSoon, checkIn } from '@/lib/reminders'
-import { todayIso } from '@/lib/dates'
 
 /**
  * The reminder loop.
@@ -106,21 +105,16 @@ export function useReminders(): RemindersState {
   useEffect(() => {
     if (running.current) return
     running.current = true
-    // A short delay keeps the first tick out of the render that mounted it.
-    const first = window.setTimeout(tick, 1500)
+    // The first tick waits for the interval rather than firing on mount: the
+    // loop is ambient, and a component that shouts the moment it appears is
+    // both startling and hard to test around. Reminders are minute-resolution
+    // by nature, so half a minute of patience costs nothing.
     const interval = window.setInterval(tick, TICK_MS)
     return () => {
       running.current = false
-      window.clearTimeout(first)
       window.clearInterval(interval)
     }
   }, [tick])
 
   return { announced, supported: notificationsSupported() }
-}
-
-/** Convenience for tests and the settings card: today's reminder keys. */
-export function todaysFiredKeys(): string[] {
-  const date = todayIso()
-  return readList(FIRED_KEY).filter((key) => key.includes(`:${date}:`))
 }

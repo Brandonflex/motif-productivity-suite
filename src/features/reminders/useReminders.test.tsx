@@ -64,7 +64,7 @@ describe('useReminders', () => {
 
     renderHook(() => useReminders(), { wrapper })
     await act(async () => {
-      vi.advanceTimersByTime(2000)
+      vi.advanceTimersByTime(31_000)
     })
 
     expect(NotificationStub.instances).toHaveLength(1)
@@ -80,7 +80,7 @@ describe('useReminders', () => {
 
     const first = renderHook(() => useReminders(), { wrapper })
     await act(async () => {
-      vi.advanceTimersByTime(2000)
+      vi.advanceTimersByTime(31_000)
     })
     expect(NotificationStub.instances).toHaveLength(1)
 
@@ -104,7 +104,7 @@ describe('useReminders', () => {
 
     renderHook(() => useReminders(), { wrapper })
     await act(async () => {
-      vi.advanceTimersByTime(5000)
+      vi.advanceTimersByTime(31_000)
     })
 
     expect(NotificationStub.instances).toHaveLength(0)
@@ -118,7 +118,7 @@ describe('useReminders', () => {
 
     const { result } = renderHook(() => useReminders(), { wrapper })
     await act(async () => {
-      vi.advanceTimersByTime(2000)
+      vi.advanceTimersByTime(31_000)
     })
 
     expect(result.current.announced.some((entry) => entry.startsWith('check-in:'))).toBe(true)
@@ -127,7 +127,7 @@ describe('useReminders', () => {
     // A second mount on the same day stays silent.
     const later = renderHook(() => useReminders(), { wrapper })
     await act(async () => {
-      vi.advanceTimersByTime(2000)
+      vi.advanceTimersByTime(31_000)
     })
     expect(later.result.current.announced).toHaveLength(0)
   })

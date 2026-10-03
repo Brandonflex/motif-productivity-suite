@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import {
   Button,
   Sidebar,
@@ -184,12 +184,11 @@ export function AppSidebar() {
             </div>
           ) : (
             <div className="space-y-2">
-              {/* Rank and streak, always in sight: the reason to come back. */}
-              <button
-                type="button"
-                onClick={() => setCollapsed(false)}
+              {/* Rank and streak, always in sight — and a door to the shelf. */}
+              <Link
+                to="/insights"
                 className="flex w-full items-center gap-2.5 rounded-md border border-sidebar-border px-2 py-1.5 text-left transition-colors hover:bg-sidebar-accent/60"
-                aria-label={`Rank ${rank.level}, ${rank.title} · ${rank.xp} XP · streak ${streak.current} days`}
+                aria-label={`Rank ${rank.level}, ${rank.title} · ${rank.xp} XP · streak ${streak.current} days — open Insights`}
               >
                 <ProgressRing value={rank.progress * 100} size={34} thickness={3} tone="brand" label={`Level ${rank.level}`}>
                   <span className="text-[11px] font-semibold tabular-nums text-foreground">{rank.level}</span>
@@ -200,7 +199,7 @@ export function AppSidebar() {
                     {streak.current}d streak · {streak.shieldsHeld} shield{streak.shieldsHeld === 1 ? '' : 's'}
                   </span>
                 </span>
-              </button>
+              </Link>
 
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Theme</span>

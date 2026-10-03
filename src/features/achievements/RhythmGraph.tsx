@@ -24,20 +24,20 @@ const ROW_LABELS = ['Mon', 'Wed', 'Fri']
 export function RhythmGraph({ history, weeks = 18 }: { history: ActivityDay[]; weeks?: number }) {
   const [focused, setFocused] = useState<string | null>(null)
 
-  const window = useMemo(() => history.slice(-(weeks * 7)), [history, weeks])
-  const columns = useMemo(() => graphColumns(window), [window])
+  const visible = useMemo(() => history.slice(-(weeks * 7)), [history, weeks])
+  const columns = useMemo(() => graphColumns(visible), [visible])
   const max = useMemo(
-    () => window.reduce((peak, day) => Math.max(peak, day.completed + day.focusMinutes / 45), 0),
-    [window],
+    () => visible.reduce((peak, day) => Math.max(peak, day.completed + day.focusMinutes / 45), 0),
+    [visible],
   )
   const today = history.at(-1)?.date
 
   const totals = useMemo(() => {
-    const active = window.filter(isActiveDay).length
-    const completions = window.reduce((total, day) => total + day.completed, 0)
-    const focus = window.reduce((total, day) => total + day.focusMinutes, 0)
+    const active = visible.filter(isActiveDay).length
+    const completions = visible.reduce((total, day) => total + day.completed, 0)
+    const focus = visible.reduce((total, day) => total + day.focusMinutes, 0)
     return { active, completions, focus }
-  }, [window])
+  }, [visible])
 
   if (columns.length === 0) return null
 
@@ -56,7 +56,7 @@ export function RhythmGraph({ history, weeks = 18 }: { history: ActivityDay[]; w
           <div
             className="flex gap-1 overflow-x-auto pb-1"
             role="img"
-            aria-label={`Rhythm for the last ${window.length} days`}
+            aria-label={`Rhythm for the last ${visible.length} days`}
           >
             {columns.map((column, columnIndex) => (
               <div key={columnIndex} className="flex flex-col gap-1">

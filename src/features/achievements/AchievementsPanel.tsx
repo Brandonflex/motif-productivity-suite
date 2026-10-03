@@ -7,13 +7,12 @@ import { LEVELS, TIER_LABELS, type AchievementTier } from '@/lib/achievements'
 import { cn } from '@/lib/utils'
 import { AchievementCard } from './AchievementCard'
 import { useAchievements } from './useAchievements'
-import { StreakFlame } from './StreakFlame'
 
 const TIER_ORDER: AchievementTier[] = ['legendary', 'gold', 'silver', 'bronze']
 
-/** The shelf: level, streak, and every badge — earned, in progress, or waiting. */
+/** The shelf: rank, progress toward the next one, and every badge on it. */
 export function AchievementsPanel({ compact = false }: { compact?: boolean }) {
-  const { shelf, xp, streak } = useAchievements()
+  const { shelf, xp } = useAchievements()
   const [filter, setFilter] = useState<AchievementTier | 'all'>('all')
 
   const earned = useMemo(() => shelf.filter((state) => state.unlocked), [shelf])
@@ -25,7 +24,7 @@ export function AchievementsPanel({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-2">
         <TiltCard className="lg:col-span-1">
           <Card className="h-full overflow-hidden">
             <CardHeader className="pb-2">
@@ -56,8 +55,6 @@ export function AchievementsPanel({ compact = false }: { compact?: boolean }) {
             </CardContent>
           </Card>
         </TiltCard>
-
-        <StreakFlame streak={streak} className="lg:col-span-1" />
 
         <Card className="lg:col-span-1">
           <CardHeader className="pb-2">
