@@ -25,7 +25,7 @@ const MIN_TEXT_CONTRAST = 4.5
 const MIN_UI_CONTRAST = 3
 
 /** Token names that are not colours and therefore have no contrast contract. */
-const NON_COLOR_TOKENS = ['radius', 'font-sans', 'font-mono', 'duration-fast', 'duration-normal']
+const NON_COLOR_TOKENS = ['radius', 'font-sans', 'font-mono', 'duration-fast', 'duration-normal', 'duration-slow']
 
 /** Text/content pairs that must stay readable in every theme. */
 const CONTRAST_PAIRS = [
@@ -44,6 +44,12 @@ const CONTRAST_PAIRS = [
   ['brand-foreground', 'brand', MIN_TEXT_CONTRAST],
   ['sidebar-foreground', 'sidebar', MIN_TEXT_CONTRAST],
   ['sidebar-accent-foreground', 'sidebar-accent', MIN_TEXT_CONTRAST],
+  ['tier-bronze-foreground', 'tier-bronze', MIN_TEXT_CONTRAST],
+  ['tier-silver-foreground', 'tier-silver', MIN_TEXT_CONTRAST],
+  ['tier-gold-foreground', 'tier-gold', MIN_TEXT_CONTRAST],
+  ['tier-legendary-foreground', 'tier-legendary', MIN_TEXT_CONTRAST],
+  ['deep-foreground', 'deep', MIN_TEXT_CONTRAST],
+  ['admin-foreground', 'admin', MIN_TEXT_CONTRAST],
   ['ring', 'background', MIN_UI_CONTRAST],
   ['primary', 'background', MIN_UI_CONTRAST],
   ['border', 'background', 1.15],

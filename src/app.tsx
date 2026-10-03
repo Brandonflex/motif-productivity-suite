@@ -7,6 +7,7 @@ import { RouteFallback } from '@/components/feedback/RouteFallback'
 import { CommandPalette, useGlobalShortcuts } from '@/components/command-palette/CommandPalette'
 import { QuickAddDialog } from '@/components/quick-add/QuickAdd'
 import { WorkspaceProvider } from '@/features/workspace/WorkspaceProvider'
+import { useAchievementCelebrations } from '@/features/achievements/useAchievements'
 import { NotFoundPage } from '@/routes/NotFoundPage'
 
 // Route-level code splitting: the shell paints immediately and each view is
@@ -61,6 +62,10 @@ function AppRoutes() {
  * always does the same thing).
  */
 function GlobalCommands() {
+  // Badges and rank-ups are celebrated from one place, so they fire wherever
+  // the user happens to be when the work lands.
+  useAchievementCelebrations()
+
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [captureOpen, setCaptureOpen] = useState(false)
 

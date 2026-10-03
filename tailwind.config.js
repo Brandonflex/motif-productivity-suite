@@ -75,6 +75,25 @@ export default {
           DEFAULT: token('brand'),
           foreground: token('brand-foreground'),
         },
+        // Achievement tiers (bronze → legendary) and rhythm work-kinds.
+        tier: {
+          bronze: token('tier-bronze'),
+          'bronze-foreground': token('tier-bronze-foreground'),
+          silver: token('tier-silver'),
+          'silver-foreground': token('tier-silver-foreground'),
+          gold: token('tier-gold'),
+          'gold-foreground': token('tier-gold-foreground'),
+          legendary: token('tier-legendary'),
+          'legendary-foreground': token('tier-legendary-foreground'),
+        },
+        deep: {
+          DEFAULT: token('deep'),
+          foreground: token('deep-foreground'),
+        },
+        admin: {
+          DEFAULT: token('admin'),
+          foreground: token('admin-foreground'),
+        },
         sidebar: {
           DEFAULT: token('sidebar'),
           foreground: token('sidebar-foreground'),
@@ -96,6 +115,7 @@ export default {
       transitionDuration: {
         fast: 'var(--duration-fast)',
         normal: 'var(--duration-normal)',
+        slow: 'var(--duration-slow)',
       },
       boxShadow: {
         // Card elevation used by the component library.

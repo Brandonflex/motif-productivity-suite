@@ -11,18 +11,23 @@ import {
   PageBody,
   PageDescription,
   PageTitle,
-  Progress,
 } from '@blinkdotnew/ui'
-import { CalendarCheck, Moon, Sun, Sunrise, TriangleAlert } from 'lucide-react'
+import { CalendarCheck, CalendarPlus, Flame, Moon, Sun, Sunrise, TriangleAlert } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { FocusTimer } from '@/features/focus/FocusTimer'
 import { QuickAddField } from '@/components/quick-add/QuickAdd'
 import { DueDatePill, PriorityPill } from '@/components/ui/Pills'
+import { ProgressRing } from '@/components/ui/ProgressRing'
+import { useAchievements } from '@/features/achievements/useAchievements'
+import { celebrate } from '@/components/fx/celebrate'
+import { buildCalendar, calendarFilename } from '@/lib/ics'
+import { downloadFile } from '@/lib/storage'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatFullDate, formatMinutes, minutesToClock, todayIso } from '@/lib/dates'
+import { useEffect, useRef } from 'react'
 import { planDay } from '@/lib/plan'
 import { describeDueDate } from '@/lib/dates'
 import { cn } from '@/lib/utils'
@@ -37,6 +42,9 @@ import { cn } from '@/lib/utils'
  */
 export function TodayPage() {
   useDocumentTitle('Today')
+  const { streak, xp } = useAchievements()
+  // The day's rings celebrate once, when the daily focus goal is first met.
+  const goalReached = useRef(false)
   const {
     tasks,
     settings,
@@ -80,6 +88,17 @@ export function TodayPage() {
     .reduce((total, task) => total + (task.estimateMinutes || 30), 0)
   const capacity = settings.capacityMinutesPerDay
   const overCapacity = plannedMinutes > capacity
+
+  useEffect(() => {
+    const goal = settings.dailyFocusGoalMinutes
+    if (goal <= 0) return
+    const met = stats.focusTodayMinutes >= goal
+    if (met && !goalReached.current) {
+      goalReached.current = true
+      celebrate({ count: 70 })
+      toast.success('Daily focus goal met — the ring agrees', { icon: '🎯' })
+    }
+  }, [settings.dailyFocusGoalMinutes, stats.focusTodayMinutes])
 
   const startPlanning = () => {
     setSelected(todayLog.plannedTaskIds.length > 0 ? todayLog.plannedTaskIds : plan.blocks.map((block) => block.task.id))
@@ -129,6 +148,19 @@ export function TodayPage() {
           <Button size="sm" variant="outline" onClick={openShutdown} className="gap-1.5">
             <Moon className="h-4 w-4" aria-hidden="true" />
             Shut down
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
+            onClick={() => {
+              const ics = buildCalendar(tasks, settings, { days: 1 })
+              downloadFile(calendarFilename(new Date(), 1), ics, 'text/calendar')
+              toast.success('Today’s plan downloaded as a calendar file')
+            }}
+          >
+            <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+            Add to calendar
           </Button>
         </PageActions>
       </PageHeaderBar>
@@ -318,14 +350,58 @@ export function TodayPage() {
                 <CardTitle className="text-base">Sunsama-style check</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-muted-foreground">Committed</span>
-                  <span className="tabular-nums font-medium">{formatMinutes(plannedMinutes)}</span>
+                {/* Three rings, one glance: focus goal, plan against capacity, and the streak. */}
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  <div className="flex flex-col items-center gap-1">
+                    <ProgressRing
+                      value={
+                        settings.dailyFocusGoalMinutes === 0
+                          ? 0
+                          : (stats.focusTodayMinutes / settings.dailyFocusGoalMinutes) * 100
+                      }
+                      size={78}
+                      thickness={7}
+                      tone="success"
+                      label={`${stats.focusTodayMinutes} of ${settings.dailyFocusGoalMinutes} focus minutes today`}
+                      caption={formatMinutes(settings.dailyFocusGoalMinutes)}
+                    />
+                    <span className="text-[11px] text-muted-foreground">Focus goal</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <ProgressRing
+                      value={capacity === 0 ? 0 : Math.min(100, (plannedMinutes / capacity) * 100)}
+                      size={78}
+                      thickness={7}
+                      tone={overCapacity ? 'warning' : 'primary'}
+                      label={`${formatMinutes(plannedMinutes)} of ${formatMinutes(capacity)} capacity committed`}
+                      caption="Capacity"
+                    />
+                    <span className="text-[11px] text-muted-foreground">Committed</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <ProgressRing
+                      value={streak.milestoneProgress * 100}
+                      size={78}
+                      thickness={7}
+                      tone="brand"
+                      pulse={streak.activeToday}
+                      label={`${streak.current} day streak`}
+                    >
+                      <span className="flex items-center gap-1 text-sm font-semibold tabular-nums text-foreground">
+                        <Flame className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
+                        {streak.current}
+                      </span>
+                    </ProgressRing>
+                    <span className="text-[11px] text-muted-foreground">Streak</span>
+                  </div>
                 </div>
-                <Progress value={capacity === 0 ? 0 : Math.min(100, (plannedMinutes / capacity) * 100)} aria-label="Capacity used" />
                 <div className="flex items-baseline justify-between text-xs text-muted-foreground">
-                  <span>Capacity {formatMinutes(capacity)}</span>
-                  <span>{overCapacity ? 'Over' : 'Healthy'}</span>
+                  <span>
+                    Rank {xp.level} · {xp.title}
+                  </span>
+                  <span>
+                    {streak.shieldsHeld} shield{streak.shieldsHeld === 1 ? '' : 's'} · {streak.daysToMilestone}d to {streak.nextMilestone}
+                  </span>
                 </div>
                 <dl className="grid grid-cols-2 gap-3 pt-2">
                   <div>
@@ -337,8 +413,8 @@ export function TodayPage() {
                     <dd className="tabular-nums text-lg font-semibold">{stats.dueTodayTasks}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Streak</dt>
-                    <dd className="tabular-nums text-lg font-semibold">{stats.streak}d</dd>
+                    <dt className="text-xs text-muted-foreground">Longest streak</dt>
+                    <dd className="tabular-nums text-lg font-semibold">{streak.longest}d</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-muted-foreground">Inbox</dt>

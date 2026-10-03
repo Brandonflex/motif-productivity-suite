@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, PageBody, PageDescription, PageTitle, Progress, Stat, StatGroup } from '@blinkdotnew/ui'
 import { Activity, BarChart3, Flame, LineChart, Target, Timer, TrendingUp } from 'lucide-react'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
+import { AchievementsPanel } from '@/features/achievements/AchievementsPanel'
+import { RhythmGraph } from '@/features/achievements/RhythmGraph'
+import { StreakFlame } from '@/features/achievements/StreakFlame'
+import { useAchievements } from '@/features/achievements/useAchievements'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import {
@@ -30,6 +34,7 @@ const DAYS = 28
 export function InsightsPage() {
   useDocumentTitle('Insights')
   const { tasks, focusSessions, projects, settings, stats } = useWorkspace()
+  const { xp, streak, history } = useAchievements()
 
   const buckets = useMemo(() => dailyActivity(tasks, focusSessions, DAYS), [focusSessions, tasks])
   const weeks = useMemo(() => heatmapWeeks(buckets), [buckets])
@@ -55,16 +60,22 @@ export function InsightsPage() {
       <PageBody className="mx-auto w-full max-w-6xl">
         <StatGroup>
           <Stat
+            label="Streak"
+            value={`${streak.current} day${streak.current === 1 ? '' : 's'}`}
+            icon={<Flame className="h-4 w-4" aria-hidden="true" />}
+            description={`Longest ${streak.longest} · ${streak.shieldsHeld} shield${streak.shieldsHeld === 1 ? '' : 's'}`}
+          />
+          <Stat
+            label="Rank"
+            value={`${xp.level} · ${xp.title}`}
+            icon={<Target className="h-4 w-4" aria-hidden="true" />}
+            description={`${xp.xp.toLocaleString()} XP`}
+          />
+          <Stat
             label="Momentum"
             value={score.score}
             icon={<TrendingUp className="h-4 w-4" aria-hidden="true" />}
             description={`${score.level} · ${score.points >= 0 ? '+' : ''}${score.points} pts`}
-          />
-          <Stat
-            label="Streak"
-            value={`${stats.streak}d`}
-            icon={<Flame className="h-4 w-4" aria-hidden="true" />}
-            description="Days in a row with progress"
           />
           <Stat
             label="Focus (4 weeks)"
@@ -79,6 +90,27 @@ export function InsightsPage() {
             description={`Best day: ${bestDay.completed} task(s)`}
           />
         </StatGroup>
+
+        {/* The month's shape at a glance: what the days were made of. */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <LineChart className="h-4 w-4 text-primary" aria-hidden="true" />
+                Rhythm
+              </CardTitle>
+              <span className="text-xs text-muted-foreground">Colour = the kind of work · density = how much</span>
+            </CardHeader>
+            <CardContent>
+              <RhythmGraph history={history} weeks={18} />
+            </CardContent>
+          </Card>
+
+          <StreakFlame streak={streak} />
+        </div>
+
+        {/* Rank, badges and the reason to come back tomorrow. */}
+        <AchievementsPanel />
 
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-2">

@@ -75,3 +75,279 @@
     }
   }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Motion & depth layer
+   ---------------------------------------------------------------------------
+   The suite is meant to feel alive rather than merely functional, so the
+   decorative motion lives here: the animated Motif mark, the aurora backdrop,
+   3D tilt and flip surfaces, ring sweeps and celebration pops. Everything is
+   CSS-only (no runtime cost, nothing to schedule), and the reduced-motion
+   override above already stills all of it for anyone who asks.
+   --------------------------------------------------------------------------- */
+
+@layer utilities {
+  /* ── Motif mark ─────────────────────────────────────────────────────────── */
+  .motif-spin-slow {
+    animation: motif-spin 26s linear infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .motif-spin-reverse {
+    animation: motif-spin 18s linear infinite reverse;
+    transform-origin: 50% 50%;
+  }
+
+  .motif-draw {
+    stroke-dasharray: 420;
+    animation: motif-draw 5.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  .motif-beat {
+    animation: motif-beat 2.4s ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .motif-orbit {
+    animation: motif-orbit 7.5s linear infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .motif-tile {
+    animation: motif-tile 9s ease-in-out infinite alternate;
+  }
+
+  /* ── Ambient backdrop ───────────────────────────────────────────────────── */
+  .aurora-drift {
+    animation: aurora-drift 28s ease-in-out infinite alternate;
+  }
+
+  .aurora-drift-late {
+    animation: aurora-drift 36s ease-in-out infinite alternate-reverse;
+  }
+
+  .grain {
+    background-image: radial-gradient(hsl(var(--foreground) / 6%) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  /* ── Interactive depth ──────────────────────────────────────────────────── */
+  .tilt-surface {
+    transform-style: preserve-3d;
+    transition: transform var(--duration-normal) ease-out;
+    will-change: transform;
+  }
+
+  .flip-surface {
+    transform-style: preserve-3d;
+    transition: transform var(--duration-slow) cubic-bezier(0.4, 0.1, 0.2, 1);
+  }
+
+  .flip-surface[data-flipped='true'] {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    backface-visibility: hidden;
+  }
+
+  .flip-face-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+  }
+
+  /* ── Rings, bars and reveals ────────────────────────────────────────────── */
+  .ring-sweep {
+    transition: stroke-dashoffset var(--duration-slow) cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .ring-breathe {
+    animation: ring-breathe 4.2s ease-in-out infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .bar-grow {
+    transform-origin: bottom;
+    animation: bar-grow 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .cell-reveal {
+    animation: cell-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .celebrate-pop {
+    animation: celebrate-pop 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .sheen {
+    background-image: linear-gradient(
+      115deg,
+      transparent 30%,
+      hsl(var(--foreground) / 12%) 45%,
+      transparent 60%
+    );
+    background-size: 250% 100%;
+    animation: sheen 3.4s ease-in-out infinite;
+  }
+
+  .float-soft {
+    animation: float-soft 6s ease-in-out infinite;
+  }
+}
+
+@keyframes motif-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes motif-draw {
+  0% {
+    stroke-dashoffset: 420;
+  }
+
+  35% {
+    stroke-dashoffset: 0;
+  }
+
+  70% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: -420;
+  }
+}
+
+@keyframes motif-beat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+
+  38% {
+    transform: scale(1.22);
+    opacity: 1;
+  }
+
+  60% {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+}
+
+@keyframes motif-orbit {
+  from {
+    transform: rotate(0deg) translateX(15px) rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg) translateX(15px) rotate(-360deg);
+  }
+}
+
+@keyframes motif-tile {
+  from {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(4%, 2%, 0) scale(1.12);
+  }
+
+  100% {
+    transform: translate3d(8%, 6%, 0) scale(1.04);
+  }
+}
+
+@keyframes ring-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0.02);
+    opacity: 0.4;
+  }
+
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cell-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes celebrate-pop {
+  0% {
+    transform: scale(0.6) rotate(-6deg);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.08) rotate(2deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes sheen {
+  0%,
+  60% {
+    background-position: 160% 0;
+  }
+
+  100% {
+    background-position: -60% 0;
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}

@@ -28,6 +28,9 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { writeSidebarCollapsed } from '@/lib/sidebar'
+import { MotifMark } from '@/components/brand/MotifMark'
+import { ProgressRing } from '@/components/ui/ProgressRing'
+import { useAchievements } from '@/features/achievements/useAchievements'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { ThemeCycleButton, ThemeToggle } from './ThemeToggle'
 
@@ -91,6 +94,7 @@ function NavItem({ item, collapsed }: { item: NavItemDef; collapsed: boolean }) 
 export function AppSidebar() {
   const { collapsed, setCollapsed } = useAppShell()
   const { stats } = useWorkspace()
+  const { xp: rank, streak } = useAchievements()
 
   useEffect(() => {
     writeSidebarCollapsed(collapsed)
@@ -128,12 +132,8 @@ export function AppSidebar() {
         className="border-sidebar-border bg-sidebar"
       >
         <SidebarHeader className="flex h-[60px] items-center gap-2.5 border-sidebar-border px-4">
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground"
-          >
-            M
-          </span>
+          {/* The mark is the logo: a repeating motif, a braid, and a beat. */}
+          <MotifMark size={30} />
           {!collapsed && (
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold text-sidebar-foreground">Motif</span>
@@ -184,6 +184,24 @@ export function AppSidebar() {
             </div>
           ) : (
             <div className="space-y-2">
+              {/* Rank and streak, always in sight: the reason to come back. */}
+              <button
+                type="button"
+                onClick={() => setCollapsed(false)}
+                className="flex w-full items-center gap-2.5 rounded-md border border-sidebar-border px-2 py-1.5 text-left transition-colors hover:bg-sidebar-accent/60"
+                aria-label={`Rank ${rank.level}, ${rank.title} · ${rank.xp} XP · streak ${streak.current} days`}
+              >
+                <ProgressRing value={rank.progress * 100} size={34} thickness={3} tone="brand" label={`Level ${rank.level}`}>
+                  <span className="text-[11px] font-semibold tabular-nums text-foreground">{rank.level}</span>
+                </ProgressRing>
+                <span className="min-w-0">
+                  <span className="block truncate text-[11px] font-medium text-sidebar-foreground">{rank.title}</span>
+                  <span className="block truncate text-[10px] text-muted-foreground">
+                    {streak.current}d streak · {streak.shieldsHeld} shield{streak.shieldsHeld === 1 ? '' : 's'}
+                  </span>
+                </span>
+              </button>
+
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Theme</span>
                 <ThemeToggle />

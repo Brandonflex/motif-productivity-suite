@@ -3,8 +3,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle, Progress, Select, Sel
 import { Coffee, Pause, Play, RotateCcw, SkipForward, Target } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
+import { ProgressRing } from '@/components/ui/ProgressRing'
 import { formatMinutes } from '@/lib/dates'
-import { cn } from '@/lib/utils'
 
 /**
  * Focus timer (TickTick's Pomodoro, with Sunsama's single-task discipline).
@@ -130,34 +130,37 @@ export function FocusTimer({ className, presetTaskId }: { className?: string; pr
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="text-center">
-          <p
-            className={cn(
-              'tabular-nums text-5xl font-semibold tracking-tight',
-              phase === 'break' ? 'text-success' : 'text-foreground',
-            )}
-            aria-live="off"
-          >
-            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
-          </p>
-          <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-            {phase === 'break' ? (
-              <span className="inline-flex items-center gap-1">
-                <Coffee className="h-3 w-3" aria-hidden="true" /> Break
-              </span>
-            ) : activeTask ? (
-              activeTask.title
-            ) : (
-              'Unbound focus'
-            )}
-          </p>
-        </div>
+        <p className="text-center text-xs uppercase tracking-wide text-muted-foreground">
+          {phase === 'break' ? (
+            <span className="inline-flex items-center gap-1">
+              <Coffee className="h-3 w-3" aria-hidden="true" /> Break
+            </span>
+          ) : activeTask ? (
+            activeTask.title
+          ) : (
+            'Unbound focus'
+          )}
+        </p>
 
-        <Progress
-          value={progress}
-          aria-label={phase === 'break' ? 'Break progress' : 'Focus interval progress'}
-          className={phase === 'break' ? '[&>div]:bg-success' : undefined}
-        />
+        <div className="flex justify-center py-1">
+          <ProgressRing
+            value={progress}
+            size={168}
+            thickness={12}
+            tone={phase === 'break' ? 'success' : 'brand'}
+            pulse={running && phase === 'focus'}
+            label={phase === 'break' ? 'Break progress' : 'Focus interval progress'}
+          >
+            <span className="flex flex-col items-center">
+              <span className="font-mono text-3xl font-semibold tabular-nums leading-none text-foreground">
+                {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+              </span>
+              <span className="mt-1 text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                {phase === 'break' ? 'break' : running ? 'in focus' : 'ready'}
+              </span>
+            </span>
+          </ProgressRing>
+        </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button size="sm" onClick={() => setRunning((value) => !value)} className="gap-1.5">

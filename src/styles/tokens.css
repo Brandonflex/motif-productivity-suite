@@ -50,6 +50,22 @@
   --brand: 16 60% 47%;
   --brand-foreground: 0 0% 100%;
 
+  /* Achievement tiers — medal metals, tuned for readable text on each fill. */
+  --tier-bronze: 24 55% 38%;
+  --tier-bronze-foreground: 30 60% 97%;
+  --tier-silver: 220 12% 38%;
+  --tier-silver-foreground: 210 30% 97%;
+  --tier-gold: 38 80% 30%;
+  --tier-gold-foreground: 44 90% 97%;
+  --tier-legendary: 268 55% 44%;
+  --tier-legendary-foreground: 270 60% 98%;
+
+  /* Rhythm colours: what a day's work was mostly made of. */
+  --deep: 258 55% 45%;
+  --deep-foreground: 260 60% 98%;
+  --admin: 200 70% 33%;
+  --admin-foreground: 200 70% 97%;
+
   /* Lines + focus */
   --border: 37 20% 87%; /* editorialBorder #E5E0D8 */
   --input: 37 20% 84%;
@@ -69,6 +85,7 @@
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
   --duration-fast: 120ms;
   --duration-normal: 200ms;
+  --duration-slow: 640ms;
 }
 
 /* System preference: dark, unless the user explicitly selected light. */
@@ -103,6 +120,20 @@
 
     --brand: 16 62% 58%;
     --brand-foreground: 24 15% 10%;
+
+    --tier-bronze: 26 62% 62%;
+    --tier-bronze-foreground: 26 70% 10%;
+    --tier-silver: 215 18% 74%;
+    --tier-silver-foreground: 215 30% 12%;
+    --tier-gold: 42 85% 62%;
+    --tier-gold-foreground: 40 80% 12%;
+    --tier-legendary: 268 68% 72%;
+    --tier-legendary-foreground: 268 60% 12%;
+
+    --deep: 258 62% 68%;
+    --deep-foreground: 258 60% 12%;
+    --admin: 198 62% 62%;
+    --admin-foreground: 198 70% 12%;
 
     --border: 24 7% 22%;
     --input: 24 7% 26%;
@@ -148,6 +179,20 @@
 
   --brand: 16 62% 58%;
   --brand-foreground: 24 15% 10%;
+
+  --tier-bronze: 26 62% 62%;
+  --tier-bronze-foreground: 26 70% 10%;
+  --tier-silver: 215 18% 74%;
+  --tier-silver-foreground: 215 30% 12%;
+  --tier-gold: 42 85% 62%;
+  --tier-gold-foreground: 40 80% 12%;
+  --tier-legendary: 268 68% 72%;
+  --tier-legendary-foreground: 268 60% 12%;
+
+  --deep: 258 62% 68%;
+  --deep-foreground: 258 60% 12%;
+  --admin: 198 62% 62%;
+  --admin-foreground: 198 70% 12%;
 
   --border: 24 7% 22%;
   --input: 24 7% 26%;

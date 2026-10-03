@@ -1,64 +1,73 @@
-import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { addDaysIso, todayIso } from '@/lib/dates'
-import { readSeededWorkspace, renderApp, seedWorkspace, taskFixture } from '@/test/utils'
+import { screen, within } from '@testing-library/react'
 
-const today = () => todayIso()
+/** Queries scoped to the page body, so the sidebar's own "Today" link never collides. */
+const main = () => within(document.getElementById('workspace-main') as HTMLElement)
+import userEvent from '@testing-library/user-event'
+import { addDaysIso, formatFullDate, todayIso } from '@/lib/dates'
+import { renderApp, seedWorkspace, taskFixture } from '@/test/utils'
 
-describe('Upcoming', () => {
-  it('groups work by day and shelves the undated', async () => {
+/**
+ * Upcoming is Things-3 shaped: a horizon you can read top to bottom, a Someday
+ * shelf for work that has no date yet, and one-tap pushing when priorities move.
+ */
+
+const today = todayIso()
+
+describe('UpcomingPage', () => {
+  it('lays the horizon out day by day and shelves the dateless', async () => {
     seedWorkspace({
       tasks: [
-        taskFixture({ id: 'late', title: 'Overdue report', dueDate: addDaysIso(today(), -2) }),
-        taskFixture({ id: 'now', title: 'Ship the build', dueDate: today() }),
-        taskFixture({ id: 'soon', title: 'Client review', dueDate: addDaysIso(today(), 4) }),
-        taskFixture({ id: 'later', title: 'Annual planning', dueDate: addDaysIso(today(), 60) }),
-        taskFixture({ id: 'someday', title: 'Learn letterpress', dueDate: '' }),
+        taskFixture({ id: 'a', title: 'Ship the landing page', dueDate: today, estimateMinutes: 90 }),
+        taskFixture({ id: 'b', title: 'Call the accountant', dueDate: addDaysIso(today, 1) }),
+        taskFixture({ id: 'c', title: 'Plan the offsite', dueDate: addDaysIso(today, 40) }),
+        taskFixture({ id: 'd', title: 'Eventually learn to surf', dueDate: '' }),
       ],
     })
     renderApp('/upcoming')
 
-    expect(await screen.findByRole('heading', { name: 'Upcoming' })).toBeTruthy()
-    expect(screen.getByText('Overdue')).toBeTruthy()
-    expect(screen.getByText('Ship the build')).toBeTruthy()
-    expect(screen.getByText('Later')).toBeTruthy()
-    expect(screen.getByText('Someday')).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Upcoming' })).toBeInTheDocument()
+    expect(main().getByText('Today')).toBeInTheDocument()
+    expect(main().getByText('Tomorrow')).toBeInTheDocument()
+    expect(main().getByText('Ship the landing page')).toBeInTheDocument()
+    expect(main().getByText('Call the accountant')).toBeInTheDocument()
+    expect(main().getByText('Later')).toBeInTheDocument()
+    expect(main().getByText('Eventually learn to surf')).toBeInTheDocument()
+    expect(main().getByText(/days, day by day/)).toBeInTheDocument()
   })
 
-  it('shows recurrence and blocking badges', async () => {
+  it('flags overdue work above the horizon', async () => {
     seedWorkspace({
-      tasks: [
-        taskFixture({ id: 'r', title: 'Weekly invoicing', dueDate: today(), recurrence: { every: 1, unit: 'week' } }),
-        taskFixture({ id: 'b', title: 'Blocked job', dueDate: today(), blockedBy: ['r'] }),
-      ],
+      tasks: [taskFixture({ id: 'late', title: 'Renew the domain', dueDate: addDaysIso(today, -3) })],
     })
     renderApp('/upcoming')
 
-    expect(await screen.findByText('↻ 1w')).toBeTruthy()
-    expect(screen.getByText('blocked by 1')).toBeTruthy()
+    expect(await main().findByText('Overdue')).toBeInTheDocument()
+    expect(main().getByText('1 task(s)')).toBeInTheDocument()
+    expect(main().getByText('Renew the domain')).toBeInTheDocument()
   })
 
-  it('snoozes a task a day and a week', async () => {
+  it('pushes a task a day or a week without opening it', async () => {
     const user = userEvent.setup()
-    const target = addDaysIso(today(), 3)
-    seedWorkspace({ tasks: [taskFixture({ id: 'tsk_test', title: 'Draft the post', dueDate: target })] })
+    seedWorkspace({ tasks: [taskFixture({ id: 'a', title: 'Water the plants', dueDate: today })] })
     renderApp('/upcoming')
 
-    await user.click(await screen.findByRole('button', { name: 'Push “Draft the post” by one day' }))
-    expect(readSeededWorkspace().tasks[0]?.dueDate).toBe(addDaysIso(target, 1))
+    await user.click(await screen.findByRole('button', { name: /Push “Water the plants” by a week/ }))
 
-    await user.click(screen.getByRole('button', { name: 'Push “Draft the post” by a week' }))
-    expect(readSeededWorkspace().tasks[0]?.dueDate).toBe(addDaysIso(target, 8))
+
+    // Moving the only task out of today empties the day but keeps the work visible.
+    await screen.findByRole('button', { name: /Push “Water the plants” by one day/ })
+    expect(main().queryByText('Today')).not.toBeInTheDocument()
+    expect(main().getByText('Water the plants')).toBeInTheDocument()
+    expect(main().getByText(formatFullDate(addDaysIso(today, 7)))).toBeInTheDocument()
+    expect(main().getByText('Everything has a date. Nice.')).toBeInTheDocument()
   })
 
-  it('completes a task straight from the schedule', async () => {
-    const user = userEvent.setup()
-    seedWorkspace({ tasks: [taskFixture({ id: 'tsk_test', title: 'Pay the rent', dueDate: today() })] })
+  it('reassures when nothing is scheduled', async () => {
+    seedWorkspace({ tasks: [] })
     renderApp('/upcoming')
 
-    await user.click(await screen.findByRole('checkbox', { name: 'Mark “Pay the rent” as complete' }))
-
-    expect(readSeededWorkspace().tasks[0]?.status).toBe('Completed')
+    expect(await main().findByText('Nothing scheduled in the next three weeks')).toBeInTheDocument()
+    expect(main().getByText('Everything has a date. Nice.')).toBeInTheDocument()
   })
 })
