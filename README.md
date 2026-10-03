@@ -15,13 +15,44 @@
 
 ## What it does
 
-| Area | Capability |
-| :--- | :--- |
-| **Dashboard** | Live workload stats (active projects, open/completed work, due today, overdue), an "up next" queue sorted by real due dates, a task-pipeline breakdown and per-project progress. |
-| **Tasks** | Create, edit, complete and delete tasks; search plus status/priority filters; four sort modes; inline status changes; undo toast for deletions; keyboard- and screen-reader-friendly table. |
-| **Projects** | Group related tasks, drag progress with a real slider (keyboard accessible), change status inline, see task load per project, and get warned before deleting a project (its tasks are reassigned, never lost). |
-| **Settings** | Light/dark/system theme, JSON export **and** import with validation, workspace reset behind a confirmation dialog, and local-storage health reporting. |
-| **Data** | Versioned `localStorage` persistence, schema validation on every read, automatic migration of legacy data, corruption recovery, cross-tab sync, and download/restore backups. |
+| Area            | Capability                                                                                                                                                                                                                                   |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Dashboard**   | Momentum score, workload against capacity, due-today focus, an "up next" queue sorted by real due dates, a task-pipeline breakdown and per-project rollups.                                                                                  |
+| **Today**       | A morning planning ritual (pick what today is actually for, with an over-capacity warning), auto-scheduled blocks inside your working window, a pomodoro-style focus timer and an evening shutdown that rolls unfinished work into tomorrow. |
+| **Inbox**       | Linear-style triage: capture first, decide later. Each item can be dated, assigned, promoted to the task list, or parked on the Someday shelf.                                                                                               |
+| **Upcoming**    | The next three weeks, day by day, with overdue work at the top, a Someday shelf for undated work, recurrence badges and one-click reschedule.                                                                                                |
+| **Tasks**       | **Four views of one dataset** — list, board (with WIP limits), Eisenhower matrix and a seven-day schedule canvas. Natural-language quick add, saved views, due-date filters, five sorts, dependencies, tags, energy and estimates.           |
+| **Task detail** | A side inspector for everything about one task: dates, times, recurrence, tags, notes, dependencies, real focus time against the estimate, complete/delete with undo.                                                                        |
+| **Projects**    | Group related tasks, drag progress or derive it automatically from completed work, set a target date, pause or archive, and see remaining effort against the deadline.                                                                       |
+| **Insights**    | Four weeks of momentum, a completion heatmap, focus split by task, capacity and project rollups, plus a weekly review summary.                                                                                                               |
+| **Automations** | No-code rules (Trello/Butler style): when a task is created, completed or moved, then set its priority, status, energy, tags, project or schedule it a few days out. Starter presets included.                                               |
+| **Settings**    | Light/dark/system theme, focus and capacity defaults, working hours, chime and rollover preferences, JSON export **and** import with validation, workspace reset behind a confirmation dialog, and local-storage health reporting.           |
+| **Data**        | Versioned `localStorage` persistence, per-row revision clocks for conflict-free merges, tombstones, automatic migration of v1/v2 data, corruption recovery, cross-tab merge, and download/restore backups.                                   |
+
+Everything is client-side. There is no backend, no account, and no analytics — the app works offline and survives a
+reload.
+
+---
+
+## Concepts borrowed from proven platforms
+
+Motif is not built in a vacuum: every mechanic below was taken from a product that has already proven it works, then
+implemented here.
+
+| Platform                                         | What was borrowed                                                                                                                              | Where it lives                                                                                     |
+| :----------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------- |
+| **Todoist**                                      | Natural-language quick add (`Pay invoice tomorrow 2pm #finance @admin !p1 ~45m every month`), recurrence phrases, a momentum/karma-style score | `src/lib/quick-add.ts`, `src/lib/recurrence.ts`, `src/lib/analytics.ts`                            |
+| **Things 3**                                     | Start date _vs_ deadline, Today/Upcoming/Someday buckets, drag-to-insert rescheduling                                                          | `src/types/workspace.ts`, `src/features/upcoming/`, `views/ScheduleView.tsx`                       |
+| **TickTick**                                     | Eisenhower matrix view, per-task focus sessions, energy and time estimates                                                                     | `views/MatrixView.tsx`, `src/features/focus/FocusTimer.tsx`                                        |
+| **Linear**                                       | ⌘K command palette, single-key capture (`Q`), inbox-first triage, a side-panel task inspector, a sub-100 ms optimistic UI                      | `src/components/command-palette/`, `src/features/inbox/`, `src/features/tasks/TaskDetailPanel.tsx` |
+| **Notion**                                       | Saved views (filter sets you can name and reuse), project rollups that derive progress from work done                                          | `src/features/tasks/TasksPage.tsx`, `src/lib/analytics.ts`                                         |
+| **Asana**                                        | Task dependencies (`blocked by`), capacity/workload modelling against a working window                                                         | `src/lib/plan.ts`, `src/lib/analytics.ts`                                                          |
+| **Trello / Butler**                              | Trigger → action automation rules, WIP limits with a visible warning on the board                                                              | `src/lib/rules.ts`, `src/features/settings/AutomationsCard.tsx`, `views/BoardView.tsx`             |
+| **ClickUp / monday.com**                         | Dashboard widgets and roll-ups (completion heatmap, focus split, per-project effort)                                                           | `src/features/insights/InsightsPage.tsx`                                                           |
+| **Motion**                                       | Auto-scheduling into free slots inside the workday, with fixed-time tasks pinned where you put them                                            | `src/lib/plan.ts`, `views/ScheduleView.tsx`                                                        |
+| **Sunsama**                                      | A daily planning ritual with an over-commitment warning, an evening shutdown ritual, focus mode, weekly review                                 | `src/features/today/TodayPage.tsx`, `src/features/focus/`                                          |
+| **Reclaim.ai** _(bonus)_                         | A daily focus goal, per-day capacity, a workday window, and deadline-aware scheduling                                                          | `src/types/workspace.ts` (`DEFAULT_SETTINGS`), `src/lib/plan.ts`                                   |
+| **Local-first / CRDT practice** _(architecture)_ | Per-row `rev` + `updatedAt` merge clock, tombstones so deletions survive a merge, idempotent storage writes                                    | `src/lib/storage.ts`                                                                               |
 
 Everything is client-side. There is no backend, no account, and no analytics — the app works offline and survives a
 reload.
@@ -30,18 +61,18 @@ reload.
 
 ## Tech stack
 
-| Layer | Choice |
-| :--- | :--- |
-| **Framework** | React 19 + React Router 7 (SPA, route-level code splitting) |
-| **Build** | Vite 8 (rolldown) · TypeScript in strict mode |
-| **Styling** | Tailwind CSS 3.4 + a CSS-variable design-token layer (`src/styles/tokens.css`) |
-| **Components** | [`@blinkdotnew/ui`](https://www.npmjs.com/package/@blinkdotnew/ui) (Radix primitives) + a few local compositions |
-| **Forms & validation** | react-hook-form + zod (one schema per entity, reused for storage validation) |
-| **Dates** | date-fns (UTC-safe, calendar-date semantics) |
-| **Feedback** | react-hot-toast (including an undo action on destructive operations) |
-| **Icons** | lucide-react |
-| **Testing** | Vitest + Testing Library (jsdom) — 77 tests covering storage, dates, theme, the store, the sidebar, shortcuts and all four views |
-| **Quality** | ESLint 9 (flat config, `jsx-a11y`), Stylelint, `tsc --noEmit`, a design-token/contrast checker, GitHub Actions |
+| Layer                  | Choice                                                                                                                                                                                                    |
+| :--------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Framework**          | React 19 + React Router 7 (SPA, route-level code splitting)                                                                                                                                               |
+| **Build**              | Vite 8 (rolldown) · TypeScript in strict mode                                                                                                                                                             |
+| **Styling**            | Tailwind CSS 3.4 + a CSS-variable design-token layer (`src/styles/tokens.css`)                                                                                                                            |
+| **Components**         | [`@blinkdotnew/ui`](https://www.npmjs.com/package/@blinkdotnew/ui) (Radix primitives) + a few local compositions                                                                                          |
+| **Forms & validation** | react-hook-form + zod (one schema per entity, reused for storage validation)                                                                                                                              |
+| **Dates**              | date-fns (UTC-safe, calendar-date semantics)                                                                                                                                                              |
+| **Feedback**           | react-hot-toast (including an undo action on destructive operations)                                                                                                                                      |
+| **Icons**              | lucide-react                                                                                                                                                                                              |
+| **Testing**            | Vitest + Testing Library (jsdom) — 185 tests covering planning, recurrence, automations, storage v3 merges and migration, the store, rituals, the focus timer, routing, keyboard shortcuts and every view |
+| **Quality**            | ESLint 9 (flat config, `jsx-a11y`), Stylelint, `tsc --noEmit`, a design-token/contrast checker, GitHub Actions                                                                                            |
 
 ---
 
@@ -85,17 +116,25 @@ src/
 ├── styles/tokens.css           # Design tokens (light, dark + prefers-color-scheme)
 ├── components/
 │   ├── app-shell/              # Shell, sidebar rail, theme switch
+│   ├── command-palette/        # ⌘K palette + global shortcut wiring
 │   ├── feedback/               # Error boundary, suspense skeleton
+│   ├── quick-add/              # Natural-language capture field + dialog
 │   └── ui/                     # ConfirmDialog, pills, pill tones, undo toast
 ├── features/
 │   ├── workspace/              # Store: provider, context contract, useWorkspace hook
 │   ├── dashboard/              # Workload overview
-│   ├── tasks/                  # Task list + create/edit dialog
+│   ├── today/                  # Morning plan, focus, evening shutdown
+│   ├── inbox/                  # Capture triage
+│   ├── upcoming/               # Three-week schedule + Someday shelf
+│   ├── tasks/                  # Views (list/board/matrix/schedule), dialog, inspector
 │   ├── projects/               # Project grid + create/edit dialog
-│   └── settings/               # Appearance, data management, storage health
+│   ├── focus/                  # Focus timer
+│   ├── insights/               # Momentum, heatmap, capacity, rollups
+│   └── settings/               # Appearance, planning, automations, data, health
 │                               # (each view ships its own *.test.tsx)
 ├── hooks/                      # useDocumentTitle, useHotkeys
-├── lib/                        # storage, dates, ids, theme, sidebar, cn
+├── lib/                        # storage, dates, ids, theme, sidebar, cn,
+│                               # quick-add, recurrence, plan, rules, analytics, filters
 ├── routes/                     # NotFoundPage
 ├── test/                       # Vitest setup + render helpers/fixtures
 └── types/workspace.ts          # zod schemas → inferred Task/Project/backup types
@@ -113,25 +152,40 @@ presentational, and never import `localStorage` directly — go through `src/lib
 
 ```
 localStorage
-└── motif:workspace:v2     { tasks: Task[], projects: Project[] }
-    motif:theme            'light' | 'dark'      (absent = follow system)
-    motif:sidebar-collapsed
+├── motif:workspace:v3     the whole workspace (tasks, projects, focus, logs, rules, views)
+├── motif:tasks-view       last used task view (list | board | matrix | schedule)
+├── motif:theme            'light' | 'dark'      (absent = follow system)
+└── motif:sidebar-collapsed
 ```
 
-- **Schemas** live in `src/types/workspace.ts` (zod). Types are *inferred* from them, so runtime validation and
+- **Schemas** live in `src/types/workspace.ts` (zod). Types are _inferred_ from them, so runtime validation and
   compile-time types can never drift apart.
 - **Reads are defensive.** Corrupted JSON, missing keys, wrong field types and out-of-range values are repaired or
   defaulted per field; a single bad row can never blank the workspace. Repairs are surfaced to the user instead of
   failing silently.
-- **Migration.** Pre-v2 data stored under `motif_tasks_v1` / `motif_projects_v1` is migrated on first load, including
-  `"Mar 4"`-style due dates, and the legacy keys are removed.
+- **Migration.** v2 workspaces and pre-v2 data stored under `motif_tasks_v1` / `motif_projects_v1` are migrated on
+  first load, including `"Mar 4"`-style due dates, and the legacy keys are removed.
 - **Writes are guarded.** Quota and private-mode failures are caught, reported in Settings, and no longer throw
   during render.
-- **Backups** are validated before they replace anything: importing a file that merely *looks* like JSON is refused.
+- **Backups** are validated before they replace anything: importing a file that merely _looks_ like JSON is refused.
 - **Cross-tab sync.** A `storage` event listener keeps multiple open tabs consistent.
 
 Date values are calendar dates (`YYYY-MM-DD`) handled in UTC, so a task never moves because a user is behind or ahead
 of UTC.
+
+### The workspace file (v3)
+
+```
+motif:workspace:v3   {
+  tasks, projects, focusSessions, dailyLogs, rules, savedViews,
+  tombstones, settings
+}
+```
+
+Every task and project carries a `rev` and an `updatedAt`, so two tabs (or an imported backup) can be merged without
+losing either side: the newer revision wins per row, deletions leave a tombstone and beat any older edit. Focus
+sessions, day logs, rules and saved views merge by id. On save the snapshot is pruned (the newest 2 000 focus sessions,
+one log per day, tombstones older than 90 days) so a long-lived workspace cannot creep past the storage quota.
 
 ---
 
@@ -162,18 +216,18 @@ dark-mode user sees the right colours on the very first paint — before any Jav
 
 ## Quality pipeline
 
-| Command | What it does |
-| :--- | :--- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Production build + static finalisation/verification |
-| `npm run preview` | Serve the built output locally |
-| `npm run typecheck` | `tsc` for the app and for the Vite/Vitest config projects (strict) |
-| `npm run lint:js` / `lint:js:fix` | ESLint 9 (typescript-eslint, react-hooks, jsx-a11y) |
-| `npm run lint:css` / `lint:css:fix` | Stylelint (design-system CSS) |
-| `npm run check:tokens` | Design-token + contrast guardrail |
-| `npm test` / `npm run test:watch` | Vitest (jsdom) |
-| `npm run lint` | Types + ESLint + Stylelint + tokens |
-| `npm run verify` | Lint + tests + build — the full gate |
+| Command                             | What it does                                                       |
+| :---------------------------------- | :----------------------------------------------------------------- |
+| `npm run dev`                       | Vite dev server                                                    |
+| `npm run build`                     | Production build + static finalisation/verification                |
+| `npm run preview`                   | Serve the built output locally                                     |
+| `npm run typecheck`                 | `tsc` for the app and for the Vite/Vitest config projects (strict) |
+| `npm run lint:js` / `lint:js:fix`   | ESLint 9 (typescript-eslint, react-hooks, jsx-a11y)                |
+| `npm run lint:css` / `lint:css:fix` | Stylelint (design-system CSS)                                      |
+| `npm run check:tokens`              | Design-token + contrast guardrail                                  |
+| `npm test` / `npm run test:watch`   | Vitest (jsdom)                                                     |
+| `npm run lint`                      | Types + ESLint + Stylelint + tokens                                |
+| `npm run verify`                    | Lint + tests + build — the full gate                               |
 
 `.github/workflows/ci.yml` runs `npm run lint`, `npm test` and `npm run build` on every push and pull request to
 `main`, then uploads the `dist/` artifact. (Note: GitHub only reads workflows from `.github/workflows/` — an earlier
@@ -195,13 +249,15 @@ copy of this pipeline lived at `.github/ci.yml` and therefore never ran.)
 
 ## Keyboard shortcuts
 
-| Key | Where | Action |
-| :--- | :--- | :--- |
-| `/` | Tasks | Focus search |
-| `N` | Dashboard, Tasks, Projects | Create a task/project |
-| `Tab` / `Shift+Tab` | Everywhere | Move through the page; dialogs trap focus and return it on close |
-| `Esc` | Dialogs, menus, selects | Close without saving |
-| `Space` / `Enter` | Checkboxes, sliders, buttons | Toggle or activate the focused control |
+| Key                 | Where                        | Action                                                                |
+| :------------------ | :--------------------------- | :-------------------------------------------------------------------- |
+| `Q`                 | Everywhere                   | Capture a task from anywhere (natural language)                       |
+| `⌘K` / `Ctrl+K`     | Everywhere                   | Command palette — jump to any view, create a task, run a daily ritual |
+| `/`                 | Tasks                        | Focus search                                                          |
+| `N`                 | Dashboard, Tasks, Projects   | Create a task/project                                                 |
+| `Tab` / `Shift+Tab` | Everywhere                   | Move through the page; dialogs trap focus and return it on close      |
+| `Esc`               | Dialogs, menus, selects      | Close without saving                                                  |
+| `Space` / `Enter`   | Checkboxes, sliders, buttons | Toggle or activate the focused control                                |
 
 Shortcuts never fire while you are typing, while a modifier key is held, or while a dialog is open, and every one of
 them is mirrored by a visible control — they are an accelerator, not a hidden requirement.
@@ -257,10 +313,11 @@ that adds only a few kB.
 Deliberately not shipped yet — these are the natural next steps, and the store/schema layer is ready for them:
 
 - Backend sync or auth (everything is local-only today, by design).
-- Kanban board and drag-to-reorder (the repo previously depended on `@dnd-kit`; re-add it when the feature lands).
-- Charts and richer analytics (previous dependency on `recharts` was dropped until it is actually used).
-- Recurring tasks, reminders, tags/labels, bulk actions.
-- Test-time coverage reporting and visual regression tests.
+- Pointer-based drag-and-reorder inside the board (the schedule canvas already accepts drops; `@dnd-kit` is not needed
+  for the HTML5 drag-and-drop MVP that shipped).
+- Reminders and notifications, bulk multi-select actions.
+- Test-time coverage reporting and visual-regression tests.
+- A habit tracker and calendar (ICS) export from `planDay`'s blocks.
 
 ---
 

@@ -27,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@blinkdotnew/ui'
-import { CheckSquare, Columns3, Grid2x2, ListFilter, ListTree, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react'
+import { CalendarDays, CheckSquare, Columns3, Grid2x2, ListFilter, ListTree, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -43,11 +43,13 @@ import { DUE_FILTER_LABELS, matchesDueFilter, type DueFilter } from '@/lib/filte
 import { TaskDialog } from './TaskDialog'
 import { BoardView } from './views/BoardView'
 import { MatrixView } from './views/MatrixView'
+import { ScheduleView } from './views/ScheduleView'
+import { TaskDetailPanel } from './TaskDetailPanel'
 
 type StatusFilter = 'All' | TaskStatus
 type PriorityFilter = 'All' | TaskPriority
 type SortKey = 'due' | 'created' | 'priority' | 'title' | 'estimate'
-type ViewMode = 'list' | 'board' | 'matrix'
+type ViewMode = 'list' | 'board' | 'matrix' | 'schedule'
 
 const PRIORITY_WEIGHT: Record<TaskPriority, number> = { High: 0, Medium: 1, Low: 2 }
 
@@ -64,7 +66,7 @@ const VIEW_KEY = 'motif:tasks-view'
 function readStoredView(): ViewMode {
   try {
     const stored = window.localStorage.getItem(VIEW_KEY)
-    return stored === 'board' || stored === 'matrix' ? stored : 'list'
+    return stored === 'board' || stored === 'matrix' || stored === 'schedule' ? stored : 'list'
   } catch {
     return 'list'
   }
@@ -95,6 +97,7 @@ export function TasksPage() {
   const [view, setView] = useState<ViewMode>(readStoredView)
   const [saveOpen, setSaveOpen] = useState(false)
   const [viewName, setViewName] = useState('')
+  const [detailId, setDetailId] = useState<string | null>(null)
   const viewNameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -347,6 +350,7 @@ export function TasksPage() {
                   { value: 'list', label: 'List', icon: ListTree },
                   { value: 'board', label: 'Board', icon: Columns3 },
                   { value: 'matrix', label: 'Matrix', icon: Grid2x2 },
+                  { value: 'schedule', label: 'Schedule', icon: CalendarDays },
                 ] as const
               ).map(({ value, label, icon: Icon }) => (
                 <Button
@@ -396,6 +400,8 @@ export function TasksPage() {
           <BoardView tasks={visibleTasks} onEdit={openEdit} />
         ) : view === 'matrix' ? (
           <MatrixView tasks={visibleTasks} onEdit={openEdit} />
+        ) : view === 'schedule' ? (
+          <ScheduleView tasks={visibleTasks} onOpen={(task) => setDetailId(task.id)} />
         ) : (
         <Card className="overflow-hidden">
           {tasks.length === 0 ? (
@@ -447,15 +453,18 @@ export function TasksPage() {
                         </td>
 
                         <td className="px-4 py-3 align-top">
-                          <span
+                          <button
+                            type="button"
+                            onClick={() => setDetailId(task.id)}
                             className={
                               isDone
-                                ? 'font-medium text-muted-foreground line-through'
-                                : 'font-medium text-foreground'
+                                ? 'text-left font-medium text-muted-foreground line-through hover:underline'
+                                : 'text-left font-medium text-foreground hover:underline'
                             }
+                            aria-label={`Open “${task.title}”`}
                           >
                             {task.title}
-                          </span>
+                          </button>
                           {/* Context that is hidden from the narrower layouts. */}
                           <div className="mt-1 flex flex-wrap items-center gap-1.5 sm:hidden">
                             <span className="text-xs text-muted-foreground">
@@ -585,6 +594,8 @@ export function TasksPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+    <TaskDetailPanel taskId={detailId} onOpenChange={(open) => !open && setDetailId(null)} />
 
     <TaskDialog
       open={dialog.open}

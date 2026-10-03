@@ -155,6 +155,36 @@ describe('TasksPage', () => {
     expect(screen.getByLabelText(/search tasks/i)).toBeInTheDocument()
   })
 
+  it('offers the schedule view with a draggable backlog rail', async () => {
+    const user = userEvent.setup()
+    const today = new Date().toISOString().slice(0, 10)
+    seedWorkspace({
+      tasks: [
+        taskFixture({ id: 'a', title: 'Dated work', dueDate: today, estimateMinutes: 30 }),
+        taskFixture({ id: 'b', title: 'Unscheduled work', dueDate: '' }),
+      ],
+    })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Schedule' }))
+
+    expect(screen.getByText(/Next 7 days/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open “Unscheduled work”' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Dated work, 09:00 to 09:30/ })).toBeInTheDocument()
+  })
+
+  it('opens the inspector for a task from the list', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({ tasks: [taskFixture({ id: 'a', title: 'Inspect me' })] })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Open “Inspect me”' }))
+
+    const panel = await screen.findByRole('dialog')
+    expect(within(panel).getByRole('heading', { name: 'Inspect me' })).toBeInTheDocument()
+    expect(within(panel).getByLabelText('Notes')).toBeInTheDocument()
+  })
+
   it('remembers the chosen view across renders', async () => {
     const user = userEvent.setup()
     seedWorkspace({ tasks: [taskFixture({ title: 'Persisted view' })] })
