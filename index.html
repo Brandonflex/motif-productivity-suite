@@ -1,12 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Motif Productivity Suite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    <title>Motif Productivity Suite — tasks, projects and workspace analytics</title>
+    <meta
+      name="description"
+      content="Motif is a local-first productivity suite for planning projects, tracking tasks and understanding your workload. Fast, keyboard friendly and private by default — your data never leaves the browser."
+    />
+    <meta name="application-name" content="Motif Productivity Suite" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#FBF9F5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171514" media="(prefers-color-scheme: dark)" />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href="__SITE_URL__/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="mask-icon" href="/favicon.svg" color="#C85A32" />
+
+    <!-- Social preview (absolute URLs are filled in at build time). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Motif Productivity Suite" />
+    <meta property="og:title" content="Motif Productivity Suite" />
+    <meta
+      property="og:description"
+      content="Plan projects, track tasks and understand your workload — local-first, keyboard friendly and private by default."
+    />
+    <meta property="og:url" content="__SITE_URL__/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Motif Productivity Suite" />
+    <meta
+      name="twitter:description"
+      content="Plan projects, track tasks and understand your workload — local-first, keyboard friendly and private by default."
+    />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      Motif is an interactive workspace and needs JavaScript enabled. Nothing is uploaded anywhere — all data stays in
+      your browser.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
