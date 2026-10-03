@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { WorkspaceProvider } from '@/features/workspace/WorkspaceProvider'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { WORKSPACE_KEY } from '@/lib/storage'
-import { projectFixture, readSeededWorkspace, seedWorkspace, taskFixture } from '@/test/utils'
+import { snapshotFixture, projectFixture, readSeededWorkspace, seedWorkspace, taskFixture } from '@/test/utils'
 
 const wrapper = ({ children }: { children: ReactNode }) => <WorkspaceProvider>{children}</WorkspaceProvider>
 
@@ -129,10 +129,12 @@ describe('WorkspaceProvider', () => {
     const { result } = renderWorkspace()
 
     act(() =>
-      result.current.replaceWorkspace({
-        tasks: [taskFixture({ id: 'imported' })],
-        projects: [projectFixture({ id: 'imported_prj' })],
-      }),
+      result.current.replaceWorkspace(
+        snapshotFixture({
+          tasks: [taskFixture({ id: 'imported' })],
+          projects: [projectFixture({ id: 'imported_prj' })],
+        }),
+      ),
     )
 
     expect(result.current.tasks).toHaveLength(1)

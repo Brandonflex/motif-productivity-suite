@@ -16,6 +16,8 @@ export const pillBase =
   'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap'
 
 export const taskStatusTone: Record<TaskStatus, string> = {
+  // Inbox is deliberately neutral: unsorted capture, not a status the user chose.
+  Inbox: 'border-dashed border-border bg-transparent text-muted-foreground',
   Pending: 'border-border bg-muted text-muted-foreground',
   'In Progress': 'border-info/30 bg-info/10 text-info',
   Completed: 'border-success/30 bg-success/10 text-success',

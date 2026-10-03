@@ -4,12 +4,15 @@ import {
   clearWorkspace,
   createSampleSnapshot,
   loadWorkspace,
+  mergeSnapshots,
   parseBackup,
+  pruneSnapshot,
   saveWorkspace,
   serializeBackup,
   type StorageLike,
 } from '@/lib/storage'
-import { projectFixture, taskFixture } from '@/test/utils'
+import { focusFixture, logFixture, projectFixture, snapshotFixture, taskFixture } from '@/test/utils'
+import type { Task } from '@/types/workspace'
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike & { data: Record<string, string> } {
   const data = { ...initial }
@@ -25,7 +28,7 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { da
   }
 }
 
-const empty = { tasks: [], projects: [] }
+const empty = snapshotFixture()
 
 describe('loadWorkspace', () => {
   it('returns the fallback when storage is unavailable', () => {
@@ -61,10 +64,12 @@ describe('loadWorkspace', () => {
 
   it('keeps valid rows and reports the invalid ones', () => {
     const storage = memoryStorage({
-      [WORKSPACE_KEY]: JSON.stringify({
-        tasks: [taskFixture(), { id: 'broken' }, { ...taskFixture({ id: 'tsk_2' }), priority: 'Extreme' }],
-        projects: [projectFixture(), null],
-      }),
+      [WORKSPACE_KEY]: JSON.stringify(
+        snapshotFixture({
+          tasks: [taskFixture(), { id: 'broken' } as Task, { ...taskFixture({ id: 'tsk_2' }), priority: 'Extreme' as never }],
+          projects: [projectFixture(), null as never],
+        }),
+      ),
     })
 
     const result = loadWorkspace(storage, empty)
@@ -101,7 +106,7 @@ describe('loadWorkspace', () => {
 describe('saveWorkspace', () => {
   it('round-trips a snapshot', () => {
     const storage = memoryStorage()
-    const snapshot = { tasks: [taskFixture()], projects: [projectFixture()] }
+    const snapshot = snapshotFixture({ tasks: [taskFixture()], projects: [projectFixture()] })
 
     expect(saveWorkspace(storage, snapshot)).toEqual({ ok: true })
 
@@ -144,7 +149,7 @@ describe('clearWorkspace', () => {
 
 describe('backups', () => {
   it('serialises and validates a round trip', () => {
-    const snapshot = { tasks: [taskFixture()], projects: [projectFixture()] }
+    const snapshot = snapshotFixture({ tasks: [taskFixture()], projects: [projectFixture()] })
 
     const result = parseBackup(serializeBackup(snapshot, new Date('2026-02-03T10:00:00.000Z')))
 
@@ -178,5 +183,95 @@ describe('createSampleSnapshot', () => {
     expect(snapshot.tasks).toHaveLength(3)
     expect(snapshot.tasks[0]?.dueDate).toBe('2026-03-03')
     expect(new Set(snapshot.tasks.map((task) => task.id)).size).toBe(snapshot.tasks.length)
+  })
+})
+
+describe('mergeSnapshots', () => {
+  it('keeps the newest revision of each row', () => {
+    const local = snapshotFixture({ tasks: [taskFixture({ id: 'a', title: 'Local title', rev: 1 })] })
+    const remote = snapshotFixture({ tasks: [taskFixture({ id: 'a', title: 'Remote title', rev: 2 })] })
+
+    const merged = mergeSnapshots(local, remote)
+
+    expect(merged.tasks).toHaveLength(1)
+    expect(merged.tasks[0]?.title).toBe('Remote title')
+  })
+
+  it('unions rows that only one side knows about', () => {
+    const local = snapshotFixture({ tasks: [taskFixture({ id: 'a' })] })
+    const remote = snapshotFixture({ tasks: [taskFixture({ id: 'b' })] })
+
+    expect(mergeSnapshots(local, remote).tasks.map((task) => task.id).sort()).toEqual(['a', 'b'])
+  })
+
+  it('lets a deletion win over an older edit but not a newer one', () => {
+    const older = taskFixture({ id: 'a', updatedAt: '2026-03-01T00:00:00.000Z', rev: 3 })
+    const newer = taskFixture({ id: 'a', updatedAt: '2026-03-10T00:00:00.000Z', rev: 4 })
+    const deletedAt = '2026-03-05T00:00:00.000Z'
+
+    const deleted = mergeSnapshots(
+      snapshotFixture({ tasks: [older] }),
+      snapshotFixture({ tombstones: [{ id: 'a', kind: 'task', deletedAt }] }),
+    )
+    expect(deleted.tasks).toHaveLength(0)
+
+    const resurrected = mergeSnapshots(
+      snapshotFixture({ tasks: [newer] }),
+      snapshotFixture({ tombstones: [{ id: 'a', kind: 'task', deletedAt }] }),
+    )
+    expect(resurrected.tasks).toHaveLength(1)
+  })
+
+  it('merges focus sessions and daily logs without duplicating them', () => {
+    const local = snapshotFixture({ focusSessions: [focusFixture({ id: 's1' })], dailyLogs: [logFixture()] })
+    const remote = snapshotFixture({
+      focusSessions: [focusFixture({ id: 's1' }), focusFixture({ id: 's2' })],
+      dailyLogs: [logFixture({ shutdownAt: '2026-03-05T18:00:00.000Z' })],
+    })
+
+    const merged = mergeSnapshots(local, remote)
+
+    expect(merged.focusSessions.map((session) => session.id).sort()).toEqual(['s1', 's2'])
+    expect(merged.dailyLogs).toHaveLength(1)
+    expect(merged.dailyLogs[0]?.shutdownAt).toBe('2026-03-05T18:00:00.000Z')
+  })
+})
+
+describe('migration and pruning', () => {
+  it('upgrades a v2 envelope and removes the old key', () => {
+    const storage = memoryStorage({
+      'motif:workspace:v2': JSON.stringify({
+        tasks: [taskFixture({ id: 'old', title: 'From v2' })],
+        projects: [projectFixture({ id: 'old_prj' })],
+      }),
+    })
+
+    const result = loadWorkspace(storage, snapshotFixture())
+
+    expect(result.status).toBe('migrated')
+    expect(result.snapshot.tasks[0]?.title).toBe('From v2')
+    // Rows from the old envelope get a revision clock so merges behave.
+    expect(result.snapshot.tasks[0]?.rev).toBeGreaterThanOrEqual(0)
+    expect(storage.getItem('motif:workspace:v2')).toBeNull()
+  })
+
+  it('caps focus sessions, logs and expired tombstones on save', () => {
+    const sessions = Array.from({ length: 2100 }, (_, index) =>
+      focusFixture({ id: `s${index}`, startedAt: new Date(Date.UTC(2026, 0, 1, 0, index)).toISOString() }),
+    )
+    const old = pruneSnapshot(
+      snapshotFixture({
+        focusSessions: sessions,
+        tombstones: [
+          { id: 'ancient', kind: 'task', deletedAt: '2020-01-01T00:00:00.000Z' },
+          { id: 'recent', kind: 'task', deletedAt: new Date().toISOString() },
+        ],
+      }),
+    )
+
+    expect(old.focusSessions).toHaveLength(2000)
+    // Newest survive the trim.
+    expect(old.focusSessions.at(-1)?.id).toBe('s2099')
+    expect(old.tombstones.map((tombstone) => tombstone.id)).toEqual(['recent'])
   })
 })

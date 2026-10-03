@@ -129,4 +129,78 @@ describe('TasksPage', () => {
 
     expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument()
   })
+
+  it('switches between list, board and matrix views of the same data', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({
+      tasks: [
+        taskFixture({ id: 'a', title: 'Urgent and important', priority: 'High', dueDate: '2026-03-05' }),
+        taskFixture({ id: 'b', title: 'Someday idea', priority: 'Low', dueDate: '' }),
+      ],
+    })
+
+    await openTasksPage()
+    expect(screen.getByText('Urgent and important')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Board' }))
+    expect(screen.getByLabelText(/In Progress column/)).toBeInTheDocument()
+    expect(screen.getByText('Urgent and important')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Matrix' }))
+    expect(screen.getByText('Do now')).toBeInTheDocument()
+    expect(screen.getByText('Drop or defer')).toBeInTheDocument()
+    expect(screen.getByText('Someday idea')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'List' }))
+    expect(screen.getByLabelText(/search tasks/i)).toBeInTheDocument()
+  })
+
+  it('remembers the chosen view across renders', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({ tasks: [taskFixture({ title: 'Persisted view' })] })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Board' }))
+
+    expect(window.localStorage.getItem('motif:tasks-view')).toBe('board')
+  })
+
+  it('warns when a column is over its WIP limit', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({
+      tasks: Array.from({ length: 4 }, (_, index) =>
+        taskFixture({ id: `w${index}`, title: `Wip ${index}`, status: 'In Progress' }),
+      ),
+    })
+
+    await openTasksPage()
+    await user.click(screen.getByRole('button', { name: 'Board' }))
+
+    expect(screen.getByLabelText(/In Progress column, 4 tasks/)).toBeInTheDocument()
+    expect(screen.getAllByText(/limit 3/).length).toBeGreaterThan(0)
+  })
+
+  it('saves and reuses a filtered view', async () => {
+    const user = userEvent.setup()
+    seedWorkspace({
+      tasks: [
+        taskFixture({ id: 'a', title: 'High one', priority: 'High' }),
+        taskFixture({ id: 'b', title: 'Low one', priority: 'Low' }),
+      ],
+    })
+
+    await openTasksPage()
+    await user.click(screen.getByLabelText('Filter by priority'))
+    await user.click(await screen.findByRole('option', { name: 'High' }))
+    await waitFor(() => expect(screen.queryByText('Low one')).not.toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /save this view/i }))
+    const dialog = await screen.findByRole('dialog')
+    await user.type(within(dialog).getByLabelText('View name'), 'High only')
+    await user.click(within(dialog).getByRole('button', { name: /^save/i }))
+
+    // Exact name, so the chip's own "Delete saved view …" button is not matched.
+    expect(await screen.findByRole('button', { name: 'High only' })).toBeInTheDocument()
+    expect(window.localStorage.getItem(WORKSPACE_KEY)).toContain('High only')
+  })
 })

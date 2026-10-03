@@ -17,6 +17,8 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatTimestamp } from '@/lib/dates'
 import { backupFilename, parseBackup, readFileAsText } from '@/lib/storage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { AutomationsCard } from './AutomationsCard'
+import { PlanningCard } from './PlanningCard'
 import { ThemeToggle } from '@/components/app-shell/ThemeToggle'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import type { WorkspaceSnapshot } from '@/types/workspace'
@@ -95,6 +97,10 @@ export function SettingsPage() {
             <ThemeToggle />
           </CardContent>
         </Card>
+
+        <PlanningCard />
+
+        <AutomationsCard />
 
         {/* Data management */}
         <Card>

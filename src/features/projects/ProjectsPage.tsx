@@ -28,7 +28,8 @@ import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useHotkeys } from '@/hooks/useHotkeys'
-import { formatTimestamp } from '@/lib/dates'
+import { formatFullDate, formatMinutes, formatTimestamp } from '@/lib/dates'
+import { projectRollups } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { pillBase, projectStatusTone } from '@/components/ui/pill-tones'
@@ -39,7 +40,7 @@ import { ProjectDialog } from './ProjectDialog'
 export function ProjectsPage() {
   useDocumentTitle('Projects')
   const navigate = useNavigate()
-  const { projects, tasks, deleteProject, updateProjectProgress, updateProjectStatus } = useWorkspace()
+  const { projects, tasks, deleteProject, updateProjectProgress, updateProjectStatus, updateProject } = useWorkspace()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [dialog, setDialog] = useState<{ open: boolean; project: Project | null }>({ open: false, project: null })
@@ -60,18 +61,24 @@ export function ProjectsPage() {
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams, openCreate])
 
-  const loadByProject = useMemo(() => {
-    const map = new Map<string, { total: number; done: number }>()
-    for (const task of tasks) {
-      const entry = map.get(task.project) ?? { total: 0, done: 0 }
-      entry.total += 1
-      if (task.status === 'Completed') entry.done += 1
-      map.set(task.project, entry)
-    }
-    return map
-  }, [tasks])
+  // Notion-style rollups: progress, remaining effort and overdue debt per project.
+  const rollups = useMemo(() => projectRollups(projects, tasks), [projects, tasks])
+  const loadByProject = useMemo(
+    () => new Map(rollups.map((rollup) => [rollup.project.name, { total: rollup.total, done: rollup.done }])),
+    [rollups],
+  )
 
   const affectedTasks = pendingDelete ? (loadByProject.get(pendingDelete.name)?.total ?? 0) : 0
+
+  /** Per-card view of the rollup: counts plus effort and overdue debt. */
+  const loadFor = (name: string) =>
+    rollups.find((rollup) => rollup.project.name === name) ?? {
+      total: 0,
+      done: 0,
+      openMinutes: 0,
+      overdue: 0,
+      percent: 0,
+    }
 
   const commitProgress = (project: Project, value: number) => {
     setDraftProgress((prev) => {
@@ -131,8 +138,9 @@ export function ProjectsPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => {
-                const load = loadByProject.get(project.name) ?? { total: 0, done: 0 }
-                const progress = draftProgress[project.id] ?? project.progress
+                const load = loadFor(project.name)
+                // Rollup projects follow their tasks; manual ones keep the slider value.
+                const progress = project.autoProgress && project.status !== 'Completed' ? (draftProgress[project.id] ?? load.percent) : (draftProgress[project.id] ?? project.progress)
                 const isComplete = project.status === 'Completed'
 
                 return (
@@ -194,7 +202,7 @@ export function ProjectsPage() {
                           min={0}
                           max={100}
                           step={5}
-                          disabled={isComplete}
+                          disabled={isComplete || project.autoProgress}
                           aria-label={`Progress for ${project.name}`}
                           onValueChange={([value]) =>
                             setDraftProgress((prev) => ({ ...prev, [project.id]: value ?? project.progress }))
@@ -206,7 +214,27 @@ export function ProjectsPage() {
                           {load.total === 0
                             ? 'No tasks linked yet'
                             : `${load.done} of ${load.total} task${load.total === 1 ? '' : 's'} complete`}
+                          {load.total > 0 && ` · ${formatMinutes(load.openMinutes)} of work left`}
+                          {load.overdue > 0 && <span className="text-destructive"> · {load.overdue} overdue</span>}
                         </p>
+
+                        {project.targetDate && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Target {formatFullDate(project.targetDate)}
+                          </p>
+                        )}
+
+                        <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <input
+                            type="checkbox"
+                            checked={project.autoProgress}
+                            disabled={isComplete}
+                            onChange={(event) => updateProject(project.id, { autoProgress: event.target.checked })}
+                            className="h-3.5 w-3.5 rounded border-border accent-[hsl(var(--primary))]"
+                            aria-label={`Derive ${project.name} progress from its tasks`}
+                          />
+                          Derive progress from tasks
+                        </label>
                       </div>
 
                       <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">

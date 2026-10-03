@@ -106,3 +106,79 @@ export function formatTimestamp(value: string): string {
   if (Number.isNaN(parsed.getTime())) return 'unknown'
   return format(parsed, 'MMM d, yyyy · HH:mm')
 }
+
+// ── Calendar arithmetic used by scheduling, planning and analytics ───────────
+
+/** Parses `YYYY-MM-DD` as a UTC midnight date (never a local-time surprise). */
+export function toUtcDate(value: string): Date {
+  return new Date(`${isValidIsoDate(value) ? value : todayIso()}T00:00:00Z`)
+}
+
+/** `value + days`, as `YYYY-MM-DD`. */
+export function addDaysIso(value: string, days: number): string {
+  const date = toUtcDate(value)
+  date.setUTCDate(date.getUTCDate() + days)
+  return date.toISOString().slice(0, 10)
+}
+
+/** Whole calendar days from `from` to `to` (negative when `to` is earlier). */
+export function daysBetween(from: string, to: string): number {
+  return differenceInCalendarDays(toUtcDate(to), toUtcDate(from))
+}
+
+/** The inclusive list of days between two ISO dates (max 400 to stay safe). */
+export function eachDayIso(from: string, to: string): string[] {
+  const days: string[] = []
+  let cursor = from
+  while (cursor <= to && days.length < 400) {
+    days.push(cursor)
+    cursor = addDaysIso(cursor, 1)
+  }
+  return days
+}
+
+/** `HH:MM` → minutes since midnight (`'09:30'` → 570). */
+export function clockToMinutes(value: string): number {
+  const [hours, minutes] = value.split(':').map(Number)
+  return (hours || 0) * 60 + (minutes || 0)
+}
+
+/** minutes since midnight → `HH:MM`. */
+export function minutesToClock(total: number): string {
+  const clamped = Math.max(0, Math.min(24 * 60 - 1, Math.round(total)))
+  return `${String(Math.floor(clamped / 60)).padStart(2, '0')}:${String(clamped % 60).padStart(2, '0')}`
+}
+
+/** `95` → `1h 35m`, `25` → `25m`. */
+export function formatMinutes(total: number): string {
+  const minutes = Math.max(0, Math.round(total))
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`
+}
+
+/** Monday-first week containing `value`. */
+export function weekStartIso(value: string, weekStartsOn = 1): string {
+  const date = toUtcDate(value)
+  const weekday = date.getUTCDay()
+  const delta = (weekday - weekStartsOn + 7) % 7
+  return addDaysIso(value, -delta)
+}
+
+/**
+ * Six weeks of days (42 entries) covering the month that contains `value`,
+ * padded to whole weeks — the grid a month calendar needs.
+ */
+export function monthGridIso(value: string, weekStartsOn = 1): string[] {
+  const date = toUtcDate(value)
+  const first = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)).toISOString().slice(0, 10)
+  const start = weekStartIso(first, weekStartsOn)
+  return Array.from({ length: 42 }, (_, index) => addDaysIso(start, index))
+}
+
+/** `2026-03` → `March 2026`. */
+export function formatMonthLabel(value: string): string {
+  const date = toUtcDate(`${value.slice(0, 7)}-01`)
+  return format(date, 'MMMM yyyy')
+}

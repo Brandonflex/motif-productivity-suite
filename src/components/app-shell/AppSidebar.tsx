@@ -14,7 +14,18 @@ import {
   TooltipTrigger,
   useAppShell,
 } from '@blinkdotnew/ui'
-import { CheckSquare, FolderKanban, LayoutDashboard, PanelLeft, Settings, Sparkles } from 'lucide-react'
+import {
+  CalendarDays,
+  CheckSquare,
+  FolderKanban,
+  Inbox,
+  LayoutDashboard,
+  LineChart,
+  PanelLeft,
+  Settings,
+  Sparkles,
+  Sunrise,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { writeSidebarCollapsed } from '@/lib/sidebar'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
@@ -87,6 +98,10 @@ export function AppSidebar() {
 
   const primaryItems: NavItemDef[] = [
     { to: '/', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" />, end: true },
+    // Smart views first (Things 3 / Linear): what is today, what is unsorted.
+    { to: '/today', label: 'Today', icon: <Sunrise className="h-4 w-4" />, count: stats.dueTodayTasks },
+    { to: '/inbox', label: 'Inbox', icon: <Inbox className="h-4 w-4" />, count: stats.inboxTasks },
+    { to: '/upcoming', label: 'Upcoming', icon: <CalendarDays className="h-4 w-4" /> },
     { to: '/tasks', label: 'Tasks', icon: <CheckSquare className="h-4 w-4" />, count: stats.openTasks },
     {
       to: '/projects',
@@ -97,6 +112,7 @@ export function AppSidebar() {
   ]
 
   const secondaryItems: NavItemDef[] = [
+    { to: '/insights', label: 'Insights', icon: <LineChart className="h-4 w-4" /> },
     { to: '/settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
   ]
 
@@ -174,7 +190,7 @@ export function AppSidebar() {
               </div>
               <p className="flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground">
                 <Sparkles className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
-                Local-first: your workspace never leaves this browser.
+                Local-first: your workspace never leaves this browser. Press ⌘K for anything.
               </p>
               <Button
                 type="button"

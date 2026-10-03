@@ -19,6 +19,8 @@ import {
 } from '@blinkdotnew/ui'
 import { ArrowRight, CalendarClock, CheckCircle2, FolderKanban, ListChecks, Plus, TriangleAlert } from 'lucide-react'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
+import { momentum, projectRollups, workload } from '@/lib/analytics'
+import { formatMinutes } from '@/lib/dates'
 import { describeDueDate, dueDateSortKey, formatDueDate, isValidIsoDate } from '@/lib/dates'
 import { DueDatePill, ProjectStatusPill } from '@/components/ui/Pills'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
@@ -31,7 +33,11 @@ const UPCOMING_LIMIT = 5
 export function DashboardPage() {
   useDocumentTitle('Dashboard')
   const navigate = useNavigate()
-  const { tasks, projects, stats, toggleTaskStatus } = useWorkspace()
+  const { tasks, projects, stats, toggleTaskStatus, focusSessions, settings, todayLog } = useWorkspace()
+
+  const score = useMemo(() => momentum(tasks, focusSessions), [focusSessions, tasks])
+  const load = useMemo(() => workload(tasks, settings), [tasks, settings])
+  const rollups = useMemo(() => projectRollups(projects, tasks), [projects, tasks])
 
   useHotkeys({ n: () => navigate('/tasks?new=1') })
 
@@ -63,15 +69,15 @@ export function DashboardPage() {
     })
   }, [tasks])
 
-  const projectsWithLoad = useMemo(
-    () =>
-      projects.map((project) => {
-        const projectTasks = tasks.filter((task) => task.project === project.name)
-        const done = projectTasks.filter((task) => task.status === 'Completed').length
-        return { ...project, taskCount: projectTasks.length, doneCount: done }
-      }),
-    [projects, tasks],
-  )
+  const projectsWithLoad = rollups.map((rollup) => ({
+    ...rollup.project,
+    taskCount: rollup.total,
+    doneCount: rollup.done,
+    overdue: rollup.overdue,
+    openMinutes: rollup.openMinutes,
+    // Rollup projects show derived progress; manual ones keep their slider value.
+    progress: rollup.project.autoProgress ? rollup.percent : rollup.project.progress,
+  }))
 
   return (
     <Page>
@@ -109,6 +115,12 @@ export function DashboardPage() {
             description={`${stats.completionRate}% completion rate`}
           />
           <Stat
+            label="Focus today"
+            value={formatMinutes(stats.focusTodayMinutes)}
+            icon={<CalendarClock className="h-4 w-4" aria-hidden="true" />}
+            description={`${score.level} · ${score.score} momentum`}
+          />
+          <Stat
             label="Due today / overdue"
             value={`${stats.dueTodayTasks} / ${stats.overdueTasks}`}
             icon={
@@ -123,6 +135,59 @@ export function DashboardPage() {
         </StatGroup>
 
         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Today + capacity (Sunsama's check-in, Motion's plan) */}
+          <Card className="lg:col-span-3">
+            <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+              <CardTitle className="text-base">Today</CardTitle>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  to="/today"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  {todayLog.plannedAt ? 'Open today’s plan' : 'Plan my day'}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+                <Link
+                  to="/inbox"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  Triage {stats.inboxTasks} inbox item{stats.inboxTasks === 1 ? '' : 's'}
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Committed today</p>
+                <p className="tabular-nums text-lg font-semibold">
+                  {todayLog.plannedTaskIds.length} task{todayLog.plannedTaskIds.length === 1 ? '' : 's'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {stats.dueTodayTasks} due today · {stats.inProgressTasks} in progress
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Capacity (next 7 days)</p>
+                <p className="tabular-nums text-lg font-semibold">
+                  {formatMinutes(load.committedMinutes)}
+                  <span className="text-sm font-normal text-muted-foreground"> / {formatMinutes(load.capacityMinutes)}</span>
+                </p>
+                <Progress
+                  value={Math.min(100, load.ratio * 100)}
+                  aria-label="Committed work against capacity"
+                  className={load.over ? '[&>div]:bg-warning' : undefined}
+                />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Streak</p>
+                <p className="tabular-nums text-lg font-semibold">{stats.streak} day{stats.streak === 1 ? '' : 's'}</p>
+                <p className="text-xs text-muted-foreground">
+                  {load.over ? 'Over capacity — move something' : `${Math.round((1 - load.ratio) * 100)}% capacity free`}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Up next */}
           <Card className="lg:col-span-2">
             <CardHeader className="flex-row items-center justify-between space-y-0">
@@ -240,6 +305,8 @@ export function DashboardPage() {
                       <p className="truncate text-sm font-medium text-foreground">{project.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {project.doneCount} of {project.taskCount} tasks complete
+                        {project.taskCount > 0 && ` · ${formatMinutes(project.openMinutes)} left`}
+                        {project.overdue > 0 && ` · ${project.overdue} overdue`}
                         {project.taskCount === 0 && ' · no tasks linked yet'}
                       </p>
                     </div>

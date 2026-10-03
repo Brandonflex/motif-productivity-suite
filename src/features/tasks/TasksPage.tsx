@@ -4,6 +4,12 @@ import {
   Button,
   Card,
   Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   EmptyState,
   Input,
   Page,
@@ -21,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@blinkdotnew/ui'
-import { CheckSquare, ListFilter, Pencil, Plus, Search, Trash2, X } from 'lucide-react'
+import { CheckSquare, Columns3, Grid2x2, ListFilter, ListTree, Pencil, Plus, Save, Search, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -32,12 +38,16 @@ import { showUndoToast } from '@/components/ui/ToastUndo'
 import { DueDatePill, PriorityPill } from '@/components/ui/Pills'
 import { pillBase, taskStatusTone } from '@/components/ui/pill-tones'
 import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
-import { TASK_PRIORITIES, TASK_STATUSES, UNASSIGNED_PROJECT, type Task, type TaskPriority, type TaskStatus } from '@/types/workspace'
+import { DUE_FILTERS, TASK_PRIORITIES, TASK_STATUSES, UNASSIGNED_PROJECT, type SavedView, type Task, type TaskPriority, type TaskStatus } from '@/types/workspace'
+import { DUE_FILTER_LABELS, matchesDueFilter, type DueFilter } from '@/lib/filters'
 import { TaskDialog } from './TaskDialog'
+import { BoardView } from './views/BoardView'
+import { MatrixView } from './views/MatrixView'
 
 type StatusFilter = 'All' | TaskStatus
 type PriorityFilter = 'All' | TaskPriority
-type SortKey = 'due' | 'created' | 'priority' | 'title'
+type SortKey = 'due' | 'created' | 'priority' | 'title' | 'estimate'
+type ViewMode = 'list' | 'board' | 'matrix'
 
 const PRIORITY_WEIGHT: Record<TaskPriority, number> = { High: 0, Medium: 1, Low: 2 }
 
@@ -45,20 +55,51 @@ const SORTS: { value: SortKey; label: string }[] = [
   { value: 'due', label: 'Due date' },
   { value: 'created', label: 'Newest' },
   { value: 'priority', label: 'Priority' },
+  { value: 'estimate', label: 'Longest first' },
   { value: 'title', label: 'Title' },
 ]
 
+const VIEW_KEY = 'motif:tasks-view'
+
+function readStoredView(): ViewMode {
+  try {
+    const stored = window.localStorage.getItem(VIEW_KEY)
+    return stored === 'board' || stored === 'matrix' ? stored : 'list'
+  } catch {
+    return 'list'
+  }
+}
+
 export function TasksPage() {
   useDocumentTitle('Tasks')
-  const { tasks, toggleTaskStatus, setTaskStatus, deleteTask, restoreTask, stats } = useWorkspace()
+  const {
+    tasks,
+    toggleTaskStatus,
+    setTaskStatus,
+    deleteTask,
+    restoreTask,
+    stats,
+    savedViews,
+    saveView,
+    deleteSavedView,
+  } = useWorkspace()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [query, setQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All')
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('All')
+  const [dueFilter, setDueFilter] = useState<DueFilter>('all')
   const [sort, setSort] = useState<SortKey>('due')
   const [dialog, setDialog] = useState<{ open: boolean; task: Task | null }>({ open: false, task: null })
   const [defaultProject, setDefaultProject] = useState<string | undefined>(undefined)
+  const [view, setView] = useState<ViewMode>(readStoredView)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [viewName, setViewName] = useState('')
+  const viewNameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (saveOpen) requestAnimationFrame(() => viewNameRef.current?.focus())
+  }, [saveOpen])
 
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -98,10 +139,12 @@ export function TasksPage() {
     const filtered = tasks.filter((task) => {
       if (statusFilter !== 'All' && task.status !== statusFilter) return false
       if (priorityFilter !== 'All' && task.priority !== priorityFilter) return false
+      if (!matchesDueFilter(task, dueFilter)) return false
       if (!needle) return true
       return (
         task.title.toLowerCase().includes(needle) ||
-        task.project.toLowerCase().includes(needle)
+        task.project.toLowerCase().includes(needle) ||
+        task.tags.some((tag) => tag.toLowerCase().includes(needle))
       )
     })
 
@@ -114,6 +157,8 @@ export function TasksPage() {
           return PRIORITY_WEIGHT[a.priority] - PRIORITY_WEIGHT[b.priority] || a.title.localeCompare(b.title)
         case 'title':
           return a.title.localeCompare(b.title)
+        case 'estimate':
+          return (b.estimateMinutes || 0) - (a.estimateMinutes || 0) || a.title.localeCompare(b.title)
         case 'due':
         default: {
           // Completed work sinks to the bottom, then earliest due date first.
@@ -125,14 +170,52 @@ export function TasksPage() {
     })
 
     return sorted
-  }, [tasks, query, statusFilter, priorityFilter, sort])
+  }, [tasks, query, statusFilter, priorityFilter, dueFilter, sort])
 
-  const filtersActive = query.trim() !== '' || statusFilter !== 'All' || priorityFilter !== 'All'
+  const switchView = (next: ViewMode) => {
+    setView(next)
+    try {
+      window.localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      /* the choice simply will not survive a reload */
+    }
+  }
+
+  const applySavedView = (saved: SavedView) => {
+    setStatusFilter(saved.status === 'all' ? 'All' : saved.status)
+    setPriorityFilter(saved.priority === 'all' ? 'All' : saved.priority)
+    setQuery(saved.search)
+    setDueFilter(saved.due)
+    setSort(saved.sort)
+    switchView('list')
+    toast.success(`View applied: ${saved.name}`)
+  }
+
+  const persistView = () => {
+    if (!viewName.trim()) return
+    saveView({
+      name: viewName.trim(),
+      status: statusFilter === 'All' ? 'all' : statusFilter,
+      priority: priorityFilter === 'All' ? 'all' : priorityFilter,
+      project: 'all',
+      tag: 'all',
+      due: dueFilter,
+      search: query.trim(),
+      sort,
+    })
+    setSaveOpen(false)
+    setViewName('')
+    toast.success('View saved')
+  }
+
+  const filtersActive =
+    query.trim() !== '' || statusFilter !== 'All' || priorityFilter !== 'All' || dueFilter !== 'all'
 
   const clearFilters = () => {
     setQuery('')
     setStatusFilter('All')
     setPriorityFilter('All')
+    setDueFilter('all')
   }
 
   const handleDelete = (task: Task) => {
@@ -221,6 +304,19 @@ export function TasksPage() {
               </SelectContent>
             </Select>
 
+            <Select value={dueFilter} onValueChange={(value) => setDueFilter(value as DueFilter)}>
+              <SelectTrigger className="w-[9.5rem]" aria-label="Filter by due date">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DUE_FILTERS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {DUE_FILTER_LABELS[option]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
               <SelectTrigger className="w-[9.5rem]" aria-label="Sort tasks">
                 <SelectValue />
@@ -240,10 +336,67 @@ export function TasksPage() {
                 Clear
               </Button>
             )}
+
+            <div
+              role="group"
+              aria-label="Task view"
+              className="ml-auto inline-flex items-center gap-0.5 rounded-md border border-border bg-card p-0.5"
+            >
+              {(
+                [
+                  { value: 'list', label: 'List', icon: ListTree },
+                  { value: 'board', label: 'Board', icon: Columns3 },
+                  { value: 'matrix', label: 'Matrix', icon: Grid2x2 },
+                ] as const
+              ).map(({ value, label, icon: Icon }) => (
+                <Button
+                  key={value}
+                  size="sm"
+                  variant={view === value ? 'secondary' : 'ghost'}
+                  aria-pressed={view === value}
+                  onClick={() => switchView(value)}
+                  className="h-7 gap-1.5 px-2 text-xs"
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  {label}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Saved views (Notion-style): the filter combination, named and reusable */}
+        <div className="flex flex-wrap items-center gap-2">
+          {savedViews.map((saved) => (
+            <span key={saved.id} className="inline-flex items-center overflow-hidden rounded-full border border-border">
+              <button
+                type="button"
+                onClick={() => applySavedView(saved)}
+                className="px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-muted"
+              >
+                {saved.name}
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteSavedView(saved.id)}
+                aria-label={`Delete saved view ${saved.name}`}
+                className="border-l border-border px-1.5 py-1 text-[11px] text-muted-foreground hover:bg-muted hover:text-destructive"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={() => setSaveOpen(true)}>
+            <Save className="h-3.5 w-3.5" aria-hidden="true" />
+            Save this view
+          </Button>
+        </div>
+
+        {view === 'board' ? (
+          <BoardView tasks={visibleTasks} onEdit={openEdit} />
+        ) : view === 'matrix' ? (
+          <MatrixView tasks={visibleTasks} onEdit={openEdit} />
+        ) : (
         <Card className="overflow-hidden">
           {tasks.length === 0 ? (
             <EmptyState
@@ -394,6 +547,7 @@ export function TasksPage() {
             </div>
           )}
         </Card>
+        )}
 
         {filtersActive && visibleTasks.length > 0 && (
           <p className="text-xs text-muted-foreground" aria-live="polite">
@@ -402,6 +556,36 @@ export function TasksPage() {
         )}
       </PageBody>
     </Page>
+
+      <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save this view</DialogTitle>
+            <DialogDescription>
+              Stores the current status, priority, due-date filter, search and sort as a one-click chip.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            ref={viewNameRef}
+            value={viewName}
+            onChange={(event) => setViewName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') persistView()
+            }}
+            placeholder="e.g. High priority this week"
+            aria-label="View name"
+          />
+          <DialogFooter className="gap-2 pt-2">
+            <Button variant="outline" onClick={() => setSaveOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={persistView} disabled={!viewName.trim()}>
+              Save view
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     <TaskDialog
       open={dialog.open}
       onOpenChange={(open) => {
