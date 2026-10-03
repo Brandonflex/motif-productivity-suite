@@ -7,7 +7,6 @@ import {
   Compass,
   Download,
   FolderKanban,
-  Heart,
   Inbox,
   LineChart,
   Moon,
@@ -44,11 +43,9 @@ interface CommandPaletteProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreateTask: () => void
-  /** Opens the "why Motif exists" story. */
-  onOpenAbout: () => void
 }
 
-export function CommandPalette({ open, onOpenChange, onCreateTask, onOpenAbout }: CommandPaletteProps) {
+export function CommandPalette({ open, onOpenChange, onCreateTask }: CommandPaletteProps) {
   const navigate = useNavigate()
   const { tasks, toggleTaskStatus } = useWorkspace()
   const { resolved, setPreference } = useTheme()
@@ -101,22 +98,10 @@ export function CommandPalette({ open, onOpenChange, onCreateTask, onOpenAbout }
         keywords: 'json download',
         run: go('/settings'),
       },
-      {
-        id: 'about',
-        label: 'Why Motif exists',
-        hint: 'The story',
-        group: 'Workspace',
-        icon: Heart,
-        keywords: 'about story brand maker brandon free local no subscription',
-        run: () => {
-          onOpenChange(false)
-          onOpenAbout()
-        },
-      },
     ]
 
     return base
-  }, [navigate, onOpenChange, onCreateTask, onOpenAbout, resolved, setPreference])
+  }, [navigate, onOpenChange, onCreateTask, resolved, setPreference])
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase()

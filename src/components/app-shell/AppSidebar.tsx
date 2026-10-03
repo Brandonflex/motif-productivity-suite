@@ -32,8 +32,6 @@ import { MotifMark } from '@/components/brand/MotifMark'
 import { ProgressRing } from '@/components/ui/ProgressRing'
 import { useAchievements } from '@/features/achievements/useAchievements'
 import { useWorkspace } from '@/features/workspace/useWorkspace'
-import { ETHOS_SHORT } from '@/content/story'
-import { useShellActions } from './shell-actions'
 import { ThemeCycleButton, ThemeToggle } from './ThemeToggle'
 
 /** Stable id so the collapse controls can describe what they toggle. */
@@ -97,7 +95,6 @@ export function AppSidebar() {
   const { collapsed, setCollapsed } = useAppShell()
   const { stats } = useWorkspace()
   const { xp: rank, streak } = useAchievements()
-  const { openAbout } = useShellActions()
 
   useEffect(() => {
     writeSidebarCollapsed(collapsed)
@@ -184,19 +181,6 @@ export function AppSidebar() {
                 <TooltipContent side="right">Expand sidebar</TooltipContent>
               </Tooltip>
               <ThemeCycleButton />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={openAbout}
-                    aria-label="Why Motif exists — the story"
-                    className="rounded-md p-1 transition-opacity hover:opacity-80 coarse:p-2.5"
-                  >
-                    <MotifMark size={26} animated={false} className="opacity-90" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Why Motif exists</TooltipContent>
-              </Tooltip>
             </div>
           ) : (
             <div className="space-y-2">
@@ -222,17 +206,8 @@ export function AppSidebar() {
                 <ThemeToggle />
               </div>
               <p className="flex items-start gap-1.5 text-[11px] leading-snug text-muted-foreground">
-                <Sparkles className="mt-px h-3 w-3 shrink-0 text-brand" aria-hidden="true" />
-                <span>
-                  {ETHOS_SHORT}{' '}
-                  <button
-                    type="button"
-                    onClick={openAbout}
-                    className="font-medium text-primary underline-offset-2 hover:underline"
-                  >
-                    Read why
-                  </button>
-                </span>
+                <Sparkles className="mt-px h-3 w-3 shrink-0" aria-hidden="true" />
+                Local-first: your workspace never leaves this browser. Press ⌘K for anything.
               </p>
               <Button
                 type="button"

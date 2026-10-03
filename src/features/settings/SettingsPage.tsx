@@ -17,7 +17,6 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { formatTimestamp } from '@/lib/dates'
 import { backupFilename, parseBackup, readFileAsText } from '@/lib/storage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { AboutCard } from './AboutCard'
 import { AutomationsCard } from './AutomationsCard'
 import { PlanningCard } from './PlanningCard'
 import { RemindersCard } from './RemindersCard'
@@ -104,8 +103,6 @@ export function SettingsPage() {
         <RemindersCard />
 
         <AutomationsCard />
-        <AboutCard />
-
         {/* Data management */}
         <Card>
           <CardHeader className="flex-row items-center gap-2 space-y-0">

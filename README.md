@@ -17,8 +17,10 @@
 
 [**Live demo**](https://motif-productivity-suite.vercel.app/) · [**Source**](https://github.com/Brandonflex/motif-productivity-suite) · [**Report an issue**](https://github.com/Brandonflex/motif-productivity-suite/issues)
 
-_In the app, the same story is one click away: the sidebar footer links to it, ⌘K finds it ("Why Motif exists"), and
-Settings repeats the promise where people go when deciding whether to trust something with their week._
+**The story behind it:** [Why Motif exists](about/why-motif-exists.md) · [The mark](about/the-mark.md) ·
+[The promise](about/the-promise.md) · [Building it](about/building-it.md) — the part of the repository that is about the
+reason rather than the code. Built by me, **Brandon** ([@Brandonflex](https://github.com/Brandonflex)), as a personal
+project kept in the open.
 
 **Free, and yours:** no account, no trial, no tier that unlocks the useful half, no analytics. Your workspace is a JSON
 file you own — export it whenever you like, and nothing of yours is trapped here.
@@ -52,19 +54,16 @@ reload.
 
 ## Why Motif exists
 
-Motif is a personal response to rented productivity. Almost everything I lean on — quick capture, a daily plan, a focus
+Motif is a personal answer to rented productivity. Almost everything I lean on — quick capture, a daily plan, a focus
 timer, a weekly review, a rule that files things for me — is done beautifully somewhere, and almost all of it is behind
-a paywall. Motif is my one roof: the parts that matter most to me are not the parts I have to pay to reach.
+a paywall. Five apps meant five logins, five bills and five copies of the same eight features, and the switching itself
+was eating the focus the tools were supposed to protect. So I built one roof instead: the parts that matter most to me
+are not the parts I have to pay to reach.
 
-### The trade Motif refuses to make
-
-|             | Subscription tools                        | Motif                                                                |
-| :---------- | :---------------------------------------- | :------------------------------------------------------------------- |
-| **Cost**    | Monthly, forever, per feature tier        | Free. The whole suite, no tiers.                                     |
-| **Account** | Sign-up, verification, a profile to lose  | None. Open the URL and work.                                         |
-| **Data**    | On someone else's server, in their export | In your browser, in a file you can download and read                 |
-| **Trust**   | Policy pages and promises                 | You can read every line, or fork it and change it                    |
-| **Fit**     | Whatever the roadmap says                 | Whatever my week needs — a feature is an evening, not a plan upgrade |
+> **The full story lives in [`about/`](about/README.md)** — [why I stopped renting my week](about/why-motif-exists.md)
+> (including the trade I refused to make, and the two warnings I gave myself), [what the mark means](about/the-mark.md),
+> [the promise and how to check it](about/the-promise.md), and
+> [how to make it yours](about/building-it.md).
 
 ### Encoded to the maker
 
@@ -82,23 +81,17 @@ This is not a generic tracker with a logo on it. It runs on my habits:
 
 ### The mark, and what it means
 
-`public/favicon.svg` and `src/components/brand/MotifMark.tsx` are the same drawing, and it says two things at once:
-
-- **The rosette** — one petal, repeated six times. A _motif_ is a figure that repeats, so the logo is built from a single
-  repeated stroke: the same small piece of work, coming back around. That is also, exactly, what a habit is.
-- **The braid** — two ribbons crossing through the middle, one warm, one cool, drawn as one looping path. Balance:
-  effort **and** recovery, productivity **and** play. It is the two traditions the suite borrows from — the disciplined
-  systems (Todoist, Asana, Motion) and the humane ones (Sunsama, Things, Reclaim) — tied together instead of opposed.
-- **The beat** — a pulsing core, the tempo a ritual gives a week.
-- **The spark** — an orbiting dot: the next capture, the next small start.
-
-The name half and the balance half read from the same mark, which is the point.
+One drawing, two claims: a **rosette** (a single petal repeated six times — a _motif_ is a figure that repeats, which is
+also what a habit is) braided with the **two traditions** the suite borrows from — the disciplined systems and the humane
+ones — plus a **beat** and a **spark**. The name half and the balance half read from the same mark, which is the point:
+[the full reading is here](about/the-mark.md).
 
 ### The promise
 
 > **No account. No subscription. No analytics. Nothing leaves this browser.**
 
-If you want it to feel like yours, fork it and change the copy — that is not a licence footnote, it is the design goal.
+[How to verify that](about/the-promise.md) — the four checks, and the three things it doesn't mean. If you want this to
+feel like yours, fork it and change the copy: that is not a licence footnote, it is the design goal.
 
 ---
 
@@ -219,7 +212,7 @@ and needs no permission at all.
 | **Dates**              | date-fns (UTC-safe, calendar-date semantics)                                                                                                                                                              |
 | **Feedback**           | react-hot-toast (including an undo action on destructive operations)                                                                                                                                      |
 | **Icons**              | lucide-react                                                                                                                                                                                              |
-| **Testing**            | Vitest + Testing Library (jsdom) — 185 tests covering planning, recurrence, automations, storage v3 merges and migration, the store, rituals, the focus timer, routing, keyboard shortcuts and every view |
+| **Testing**            | Vitest + Testing Library (jsdom) — the suite in [Quality pipeline](#quality-pipeline) covers planning, recurrence, automations, storage v3 merges and migration, the store, rituals, the focus timer, routing, keyboard shortcuts and every view |
 | **Quality**            | ESLint 9 (flat config, `jsx-a11y`), Stylelint, `tsc --noEmit`, a design-token/contrast checker, GitHub Actions                                                                                            |
 
 ---
@@ -264,7 +257,7 @@ src/
 ├── styles/tokens.css           # Design tokens (light, dark + prefers-color-scheme)
 ├── components/
 │   ├── app-shell/              # Shell, sidebar rail, theme switch, header actions
-│   ├── brand/                  # The Motif mark, the story dialog, the welcome card
+│   ├── brand/                  # The Motif mark (animated lockup + favicon geometry)
 │   ├── command-palette/        # ⌘K palette + global shortcut wiring
 │   ├── feedback/               # Error boundary, suspense skeleton
 │   ├── fx/                     # Canvas confetti (reduced-motion aware)
@@ -284,7 +277,6 @@ src/
 │   ├── insights/               # Momentum, heatmap, rhythm, badges, rollups
 │   └── settings/               # Appearance, planning, reminders, automations, data, health
 │                               # (each view ships its own *.test.tsx)
-├── content/story.ts            # Why Motif exists — one source for README, dialogs, welcome
 ├── hooks/                      # useDocumentTitle, useHotkeys, useReducedMotion, useReminders
 ├── lib/                        # storage, dates, ids, theme, sidebar, cn, quick-add,
 │                               # recurrence, plan, rules, analytics, filters, achievements,
@@ -292,6 +284,8 @@ src/
 ├── routes/                     # NotFoundPage
 ├── test/                       # Vitest setup + render helpers/fixtures
 └── types/workspace.ts          # zod schemas → inferred Task/Project/backup types
+about/                          # The human half of the repository: why it exists, the mark,
+                                # the promise, and how to fork it (GitHub-readable markdown)
 scripts/
 ├── finalize-static-build.mjs   # Post-build verification + canonical URL rewriting
 └── check-design-tokens.mjs     # Fails CI when tokens or contrast contracts break
@@ -384,7 +378,7 @@ dark-mode user sees the right colours on the very first paint — before any Jav
 | `npm run lint`                      | Types + ESLint + Stylelint + tokens                                |
 | `npm run verify`                    | Lint + tests + build — the full gate                               |
 
-The suite is **31 files / 284 tests** and covers **84 % of statements**, 76.1 % of branches and 86 % of lines —
+The suite is **30 files / 275 tests** and covers **83.8 % of statements**, 76 % of branches and 85.8 % of lines —
 concentrated where the logic is (`src/lib/**`), with the views covered through the routes users actually take.
 
 `.github/workflows/ci.yml` runs `npm run lint`, `npm test` and `npm run build` on every push and pull request to

@@ -4,7 +4,6 @@ import { Shell } from '@/components/app-shell/Shell'
 import { AppSidebar } from '@/components/app-shell/AppSidebar'
 import { ShellActionsProvider } from '@/components/app-shell/ShellActions'
 import type { ShellActions } from '@/components/app-shell/shell-actions'
-import { AboutDialog } from '@/components/brand/AboutDialog'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { RouteFallback } from '@/components/feedback/RouteFallback'
 import { CommandPalette, useGlobalShortcuts } from '@/components/command-palette/CommandPalette'
@@ -59,13 +58,13 @@ function AppRoutes() {
 }
 
 /**
- * Global capture, the command palette and the story.
+ * Global capture and the command palette.
  *
- * All three are mounted once, above the routes, so every view shares one ⌘K
- * palette, one capture field and one "why does this exist" (Linear's model: the
- * shortcut works everywhere and always does the same thing). They are handed
- * down through `ShellActionsProvider`, which is what lets the *touch* header
- * offer the same actions as the keyboard.
+ * Both are mounted once, above the routes, so every view shares one ⌘K palette
+ * and one capture field (Linear's model: the shortcut works everywhere, and it
+ * always does the same thing). They are handed down through
+ * `ShellActionsProvider`, which is what lets the *touch* header offer the same
+ * actions as the keyboard.
  */
 function AppChrome() {
   // Badges and rank-ups are celebrated from one place, so they fire wherever
@@ -76,13 +75,11 @@ function AppChrome() {
 
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [captureOpen, setCaptureOpen] = useState(false)
-  const [aboutOpen, setAboutOpen] = useState(false)
 
   const actions = useMemo<ShellActions>(
     () => ({
       openPalette: () => setPaletteOpen(true),
       openCapture: () => setCaptureOpen(true),
-      openAbout: () => setAboutOpen(true),
     }),
     [],
   )
@@ -102,13 +99,8 @@ function AppChrome() {
           setPaletteOpen(false)
           setCaptureOpen(true)
         }}
-        onOpenAbout={() => {
-          setPaletteOpen(false)
-          setAboutOpen(true)
-        }}
       />
       <QuickAddDialog open={captureOpen} onOpenChange={setCaptureOpen} />
-      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
     </ShellActionsProvider>
   )
 }

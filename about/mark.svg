@@ -1,0 +1,39 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Motif</title>
+  <defs>
+    <linearGradient id="warm" x1="16" y1="112" x2="112" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#C2552F"/>
+      <stop offset="100%" stop-color="#E07A3F"/>
+    </linearGradient>
+    <linearGradient id="cool" x1="112" y1="112" x2="16" y2="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2F6FB0"/>
+      <stop offset="100%" stop-color="#6B5BD2"/>
+    </linearGradient>
+    <style>
+      /* The favicon pulses where the browser supports it and holds still where it does not. */
+      .beat { animation: beat 2.6s ease-in-out infinite; transform-origin: 64px 64px; }
+      .petal { animation: tile 9s ease-in-out infinite alternate; }
+      @keyframes beat { 0%,100% { transform: scale(1); opacity: .88 } 38% { transform: scale(1.18); opacity: 1 } }
+      @keyframes tile { from { opacity: .45 } to { opacity: 1 } }
+      @media (prefers-reduced-motion: reduce) { .beat, .petal { animation: none } }
+    </style>
+  </defs>
+
+  <rect width="128" height="128" rx="30" fill="#141210"/>
+
+  <g opacity="0.5">
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#E07A3F" stroke-width="2"/>
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#E07A3F" stroke-width="2" transform="rotate(60 64 64)" opacity=".85"/>
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#E07A3F" stroke-width="2" transform="rotate(120 64 64)" opacity=".7"/>
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#6B5BD2" stroke-width="2" transform="rotate(180 64 64)" opacity=".7"/>
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#6B5BD2" stroke-width="2" transform="rotate(240 64 64)" opacity=".85"/>
+    <ellipse class="petal" cx="64" cy="34" rx="14.5" ry="23" stroke="#6B5BD2" stroke-width="2" transform="rotate(300 64 64)"/>
+  </g>
+
+  <path d="M28 88C44 88 48 44 64 44s20 44 36 44" stroke="url(#warm)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M28 44c16 0 20 44 36 44s20-44 36-44" stroke="url(#cool)" stroke-width="5" stroke-linecap="round" opacity=".8"/>
+
+  <circle class="beat" cx="64" cy="64" r="9" fill="#E07A3F"/>
+  <circle cx="64" cy="64" r="17" stroke="#E07A3F" stroke-opacity=".4" stroke-width="2"/>
+  <circle cx="64" cy="34" r="5" fill="#E8B33C"/>
+</svg>
