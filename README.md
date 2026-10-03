@@ -40,7 +40,7 @@ reload.
 | **Dates** | date-fns (UTC-safe, calendar-date semantics) |
 | **Feedback** | react-hot-toast (including an undo action on destructive operations) |
 | **Icons** | lucide-react |
-| **Testing** | Vitest + Testing Library (jsdom) — 72 tests across storage, dates, theme, the store, the sidebar and all four views |
+| **Testing** | Vitest + Testing Library (jsdom) — 77 tests covering storage, dates, theme, the store, the sidebar, shortcuts and all four views |
 | **Quality** | ESLint 9 (flat config, `jsx-a11y`), Stylelint, `tsc --noEmit`, a design-token/contrast checker, GitHub Actions |
 
 ---
@@ -89,10 +89,11 @@ src/
 │   └── ui/                     # ConfirmDialog, pills, pill tones, undo toast
 ├── features/
 │   ├── workspace/              # Store: provider, context contract, useWorkspace hook
-│   ├── dashboard/              # Dashboard view
+│   ├── dashboard/              # Workload overview
 │   ├── tasks/                  # Task list + create/edit dialog
 │   ├── projects/               # Project grid + create/edit dialog
 │   └── settings/               # Appearance, data management, storage health
+│                               # (each view ships its own *.test.tsx)
 ├── hooks/                      # useDocumentTitle, useHotkeys
 ├── lib/                        # storage, dates, ids, theme, sidebar, cn
 ├── routes/                     # NotFoundPage

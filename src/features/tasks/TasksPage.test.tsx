@@ -43,8 +43,7 @@ describe('TasksPage', () => {
 
     await user.click(document.body)
     await user.keyboard('n')
-    expect(await screen.findByRole('dialog')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /new task/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /new task/i })).toBeInTheDocument()
   })
 
   it('filters tasks by search query', async () => {

@@ -11,7 +11,6 @@ import {
   PageActions,
   PageBody,
   PageDescription,
-  PageHeader,
   PageTitle,
   Select,
   SelectContent,
@@ -33,6 +32,7 @@ import { formatTimestamp } from '@/lib/dates'
 import { cn } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { pillBase, projectStatusTone } from '@/components/ui/pill-tones'
+import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import { PROJECT_STATUSES, type Project, type ProjectStatus } from '@/types/workspace'
 import { ProjectDialog } from './ProjectDialog'
 
@@ -100,7 +100,7 @@ export function ProjectsPage() {
   return (
     <TooltipProvider delayDuration={200}>
       <Page>
-        <PageHeader className="sticky top-14 z-20 border-border bg-background/95 backdrop-blur md:top-0">
+        <PageHeaderBar>
           <div className="min-w-0">
             <PageTitle>Projects</PageTitle>
             <PageDescription>
@@ -115,7 +115,7 @@ export function ProjectsPage() {
               New project
             </Button>
           </PageActions>
-        </PageHeader>
+        </PageHeaderBar>
 
         <PageBody className="mx-auto w-full max-w-6xl">
           {projects.length === 0 ? (

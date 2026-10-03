@@ -10,7 +10,6 @@ import {
   PageActions,
   PageBody,
   PageDescription,
-  PageHeader,
   PageTitle,
   Select,
   SelectContent,
@@ -32,6 +31,7 @@ import { cn } from '@/lib/utils'
 import { showUndoToast } from '@/components/ui/ToastUndo'
 import { DueDatePill, PriorityPill } from '@/components/ui/Pills'
 import { pillBase, taskStatusTone } from '@/components/ui/pill-tones'
+import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import { TASK_PRIORITIES, TASK_STATUSES, UNASSIGNED_PROJECT, type Task, type TaskPriority, type TaskStatus } from '@/types/workspace'
 import { TaskDialog } from './TaskDialog'
 
@@ -150,7 +150,7 @@ export function TasksPage() {
   return (
     <TooltipProvider delayDuration={200}>
       <Page>
-        <PageHeader className="sticky top-14 z-20 border-border bg-background/95 backdrop-blur md:top-0">
+        <PageHeaderBar>
         <div className="min-w-0">
           <PageTitle>Tasks</PageTitle>
           <PageDescription>
@@ -164,7 +164,7 @@ export function TasksPage() {
             New task
           </Button>
         </PageActions>
-      </PageHeader>
+      </PageHeaderBar>
 
       <PageBody className="mx-auto w-full max-w-6xl">
         {/* Toolbar */}

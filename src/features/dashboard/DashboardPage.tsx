@@ -12,7 +12,6 @@ import {
   PageActions,
   PageBody,
   PageDescription,
-  PageHeader,
   PageTitle,
   Progress,
   Stat,
@@ -22,6 +21,7 @@ import { ArrowRight, CalendarClock, CheckCircle2, FolderKanban, ListChecks, Plus
 import { useWorkspace } from '@/features/workspace/useWorkspace'
 import { describeDueDate, dueDateSortKey, formatDueDate, isValidIsoDate } from '@/lib/dates'
 import { DueDatePill, ProjectStatusPill } from '@/components/ui/Pills'
+import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useHotkeys } from '@/hooks/useHotkeys'
 import { UNASSIGNED_PROJECT } from '@/types/workspace'
@@ -75,7 +75,7 @@ export function DashboardPage() {
 
   return (
     <Page>
-      <PageHeader className="sticky top-14 z-20 border-border bg-background/95 backdrop-blur md:top-0">
+      <PageHeaderBar>
         <div className="min-w-0">
           <PageTitle>Dashboard</PageTitle>
           <PageDescription>Here is what is happening in your workspace today.</PageDescription>
@@ -86,7 +86,7 @@ export function DashboardPage() {
             New task
           </Button>
         </PageActions>
-      </PageHeader>
+      </PageHeaderBar>
 
       <PageBody className="mx-auto w-full max-w-6xl">
         <StatGroup>

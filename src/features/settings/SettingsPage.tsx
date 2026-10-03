@@ -8,7 +8,6 @@ import {
   Page,
   PageBody,
   PageDescription,
-  PageHeader,
   PageTitle,
 } from '@blinkdotnew/ui'
 import { AlertTriangle, Database, Download, HardDrive, RotateCcw, ShieldCheck, Upload } from 'lucide-react'
@@ -19,6 +18,7 @@ import { formatTimestamp } from '@/lib/dates'
 import { backupFilename, parseBackup, readFileAsText } from '@/lib/storage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { ThemeToggle } from '@/components/app-shell/ThemeToggle'
+import { PageHeaderBar } from '@/components/ui/PageHeaderBar'
 import type { WorkspaceSnapshot } from '@/types/workspace'
 
 export function SettingsPage() {
@@ -71,12 +71,12 @@ export function SettingsPage() {
 
   return (
     <Page>
-      <PageHeader className="sticky top-14 z-20 border-border bg-background/95 backdrop-blur md:top-0">
+      <PageHeaderBar>
         <div className="min-w-0">
           <PageTitle>Settings</PageTitle>
           <PageDescription>Appearance, data ownership and local storage health.</PageDescription>
         </div>
-      </PageHeader>
+      </PageHeaderBar>
 
       <PageBody className="mx-auto w-full max-w-4xl">
         {/* Appearance */}
