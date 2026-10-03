@@ -235,6 +235,10 @@ The app builds to plain static files in `dist/`.
   security headers above. Import the repo and deploy; no build settings to change.
 - **Netlify / Cloudflare Pages / any static host** — publish `dist/`, add a rewrite of `/*` to `/index.html` for
   client-side routing, and re-apply the headers (they are plain HTTP headers, not Vite config).
+- **Branch previews.** Vercel builds every branch that is pushed, so review links never depend on a local dev server.
+  `pull_request_template.md` records the current preview on each PR; the per-branch alias
+  `motif-productivity-suite-git-<branch>-brandonflex108-4814.vercel.app` always points at that branch's newest
+  deployment, while the production domain only moves when `main` does.
 - Set `VITE_SITE_URL` in the host's environment so `robots.txt`, `sitemap.xml`, the canonical link and `og:url`
   point at your own domain instead of the demo deployment.
 
