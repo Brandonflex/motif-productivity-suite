@@ -1,12 +1,10 @@
-# robots.txt — served as a real static file so crawlers don't get the SPA shell.
-# The seo-aeo skill customizes this per app (block private/auth/api paths,
-# set the absolute Sitemap URL to the deployed domain).
+# robots.txt — served as a real static file so crawlers never get the SPA shell.
+# `__SITE_URL__` is replaced at build time (see scripts/finalize-static-build.mjs).
 
 User-agent: *
 Allow: /
 
-# AI answer engines — allow retrieval/citation by default so the app can be
-# cited in ChatGPT / Perplexity / Claude / Google AI Overviews.
+# AI answer engines — allow retrieval/citation so the app can be cited.
 User-agent: OAI-SearchBot
 Allow: /
 
@@ -16,5 +14,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-# Replace with the absolute URL once deployed, e.g. https://your-domain/sitemap.xml
-Sitemap: /sitemap.xml
+Sitemap: __SITE_URL__/sitemap.xml

@@ -1,45 +1,78 @@
 /**
- * Finalize the build for a static hosting setup.
+ * Post-build finalizer.
  *
- * The project is a standard Vite React app, so `vite build` already emits the
- * correct static output to `dist/`. Some starter scaffolds include a stale
- * post-build script that expects `.vite-out/client`, which is not used here.
- *
- * This script supports both shapes:
- * - modern Vite builds: dist/index.html + dist/assets/... already exist
- * - older .vite-out client build layouts: copy the client bundle into dist
+ * `vite build` already emits the static SPA into `dist/`. This script closes
+ * the loop for static hosting:
+ *   1. Fails loudly if the bundle is not actually publishable.
+ *   2. Rewrites the `__SITE_URL__` placeholder in robots.txt / sitemap.xml with
+ *      the canonical origin (VITE_SITE_URL, falling back to the demo deploy).
+ *   3. Copies host-specific routing config into the output when present.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const DEST = 'dist'
 const LEGACY_SRC = '.vite-out/client'
+const DEFAULT_SITE_URL = 'https://motif-productivity-suite.vercel.app'
 
+function fail(message) {
+  console.error(`[finalize] ✖ ${message}`)
+  process.exit(1)
+}
+
+// ── 1. Legacy layouts: some scaffolds build into .vite-out/client ────────────
 if (existsSync(LEGACY_SRC)) {
+  const { cpSync, mkdirSync } = await import('node:fs')
   mkdirSync(DEST, { recursive: true })
-
   for (const entry of readdirSync(LEGACY_SRC)) {
     try {
       cpSync(join(LEGACY_SRC, entry), join(DEST, entry), { recursive: true, force: true })
     } catch (error) {
-      const message = error && typeof error === 'object' && 'message' in error ? String(error.message) : String(error)
       const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
-
       if (entry === '_redirects') {
-        console.warn(`[finalize] skip ${entry}: ${code || message} (pre-injected, identical content)`)
+        console.warn(`[finalize] skip ${entry}: ${code || 'copy failed'} (already provided by public/)`)
       } else {
-        console.error(`[finalize] FAILED copying ${entry} into dist/: ${code || message} — aborting (a partial dist/ deploys broken)`)
-        process.exit(1)
+        fail(`copying ${entry} into dist/ failed (${code || 'unknown error'}) — a partial dist/ deploys broken`)
       }
     }
   }
-
   rmSync('.vite-out', { recursive: true, force: true })
 }
 
-if (!existsSync(join(DEST, 'index.html'))) {
-  console.error('[finalize] dist/index.html missing after build — build is not publishable')
-  process.exit(1)
+// ── 2. Verify the SPA shell and its assets exist ─────────────────────────────
+const indexPath = join(DEST, 'index.html')
+if (!existsSync(indexPath)) fail('dist/index.html is missing — nothing to deploy')
+
+const indexHtml = readFileSync(indexPath, 'utf8')
+if (!/src="\/assets\/[^"]+\.js"/.test(indexHtml)) {
+  fail('dist/index.html does not reference a built JS bundle — build is incomplete')
 }
 
-console.log('[finalize] ✓ static build ready in dist/ (dist/index.html present)')
+const assetsDir = join(DEST, 'assets')
+if (!existsSync(assetsDir) || !readdirSync(assetsDir).some((file) => file.endsWith('.css'))) {
+  fail('dist/assets has no CSS output — check the Tailwind/PostCSS pipeline')
+}
+
+// ── 3. Canonical origin for robots.txt + sitemap.xml ─────────────────────────
+const siteUrl = (process.env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/+$/, '')
+if (!/^https?:\/\//.test(siteUrl)) fail(`VITE_SITE_URL must be an absolute origin, got "${siteUrl}"`)
+
+let rewritten = 0
+for (const file of ['index.html', 'robots.txt', 'sitemap.xml']) {
+  const filePath = join(DEST, file)
+  if (!existsSync(filePath)) continue
+  const contents = readFileSync(filePath, 'utf8')
+  if (!contents.includes('__SITE_URL__')) continue
+  writeFileSync(filePath, contents.replaceAll('__SITE_URL__', siteUrl))
+  rewritten += 1
+}
+
+// ── 4. Report ────────────────────────────────────────────────────────────────
+const bundleBytes = readdirSync(assetsDir)
+  .filter((file) => file.endsWith('.js'))
+  .reduce((total, file) => total + statSync(join(assetsDir, file)).size, 0)
+
+console.log(
+  `[finalize] ✓ static build ready in dist/ · ${(bundleBytes / 1024).toFixed(0)} kB JS · canonical origin ${siteUrl}` +
+    (rewritten > 0 ? ` (rewrote ${rewritten} SEO file(s))` : ''),
+)

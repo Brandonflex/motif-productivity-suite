@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Starter sitemap — served as a real static file (not the SPA shell).
-  The seo-aeo skill expands this to list every indexable route and rewrites
-  <loc> to absolute URLs on the deployed domain, e.g. https://your-domain/.
--->
+<!-- `__SITE_URL__` is replaced at build time (scripts/finalize-static-build.mjs). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/</loc>
+    <loc>__SITE_URL__/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>__SITE_URL__/tasks</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>__SITE_URL__/projects</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>__SITE_URL__/settings</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>

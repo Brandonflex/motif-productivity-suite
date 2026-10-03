@@ -1,0 +1,162 @@
+/*
+ * Design tokens — Motif editorial theme (light + dark).
+ *
+ * Every value is an HSL triplet so Tailwind can compose alpha values:
+ *   hsl(var(--primary) / 0.1)
+ * Keep `--token` names in sync with tailwind.config.js and
+ * scripts/check-design-tokens.mjs (which asserts WCAG contrast in CI).
+ *
+ * Theme resolution:
+ *   :root                  → light (default)
+ *   @media dark + :root    → system preference, unless the user picked light
+ *   .dark                  → explicit dark choice
+ * The media block means a dark-mode user sees the right colours on the very
+ * first paint, before any JavaScript runs. The dark values appear twice by
+ * necessity; the token checker fails the build if the two blocks drift apart.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --background: 40 43% 97%; /* parchment #FBF9F5 */
+  --foreground: 24 10% 10%; /* espresso  #1C1917 */
+  --card: 0 0% 100%;
+  --card-foreground: 24 10% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 24 10% 10%;
+
+  /* Brand + interactive */
+  --primary: 17 68% 41%; /* rust, text-safe 5.3:1 on paper */
+  --primary-foreground: 40 43% 98%;
+  --secondary: 38 30% 93%;
+  --secondary-foreground: 24 10% 15%;
+  --accent: 35 32% 90%;
+  --accent-foreground: 24 10% 15%;
+  --muted: 36 29% 93%;
+  --muted-foreground: 28 9% 39%; /* 5.6:1 on paper */
+  --destructive: 0 68% 42%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Status */
+  --success: 152 57% 28%;
+  --success-foreground: 0 0% 100%;
+  --warning: 32 100% 27%;
+  --warning-foreground: 0 0% 100%;
+  --info: 213 71% 39%;
+  --info-foreground: 0 0% 100%;
+
+  /* Editorial accent — icons, charts, decorative fills (4.0:1 as text) */
+  --brand: 16 60% 47%;
+  --brand-foreground: 0 0% 100%;
+
+  /* Lines + focus */
+  --border: 37 20% 87%; /* editorialBorder #E5E0D8 */
+  --input: 37 20% 84%;
+  --ring: 17 68% 41%;
+
+  /* Sidebar */
+  --sidebar: 40 36% 95%;
+  --sidebar-foreground: 24 10% 12%;
+  --sidebar-accent: 35 32% 90%;
+  --sidebar-accent-foreground: 24 10% 12%;
+  --sidebar-border: 37 20% 88%;
+  --sidebar-ring: 17 68% 41%;
+
+  /* Shape, type, motion */
+  --radius: 0.625rem;
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+}
+
+/* System preference: dark, unless the user explicitly selected light. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+
+    --background: 24 10% 8%;
+    --foreground: 40 25% 93%;
+    --card: 24 8% 11%;
+    --card-foreground: 40 25% 93%;
+    --popover: 24 8% 12%;
+    --popover-foreground: 40 25% 93%;
+
+    --primary: 16 62% 55%;
+    --primary-foreground: 24 15% 10%;
+    --secondary: 24 6% 18%;
+    --secondary-foreground: 40 20% 92%;
+    --accent: 24 6% 21%;
+    --accent-foreground: 40 20% 92%;
+    --muted: 24 6% 16%;
+    --muted-foreground: 34 12% 68%;
+    --destructive: 0 78% 74%;
+    --destructive-foreground: 0 60% 14%;
+
+    --success: 152 45% 65%;
+    --success-foreground: 152 60% 10%;
+    --warning: 38 85% 65%;
+    --warning-foreground: 32 80% 12%;
+    --info: 213 80% 72%;
+    --info-foreground: 213 80% 12%;
+
+    --brand: 16 62% 58%;
+    --brand-foreground: 24 15% 10%;
+
+    --border: 24 7% 22%;
+    --input: 24 7% 26%;
+    --ring: 16 62% 58%;
+
+    --sidebar: 24 10% 6%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-accent: 24 6% 18%;
+    --sidebar-accent-foreground: 40 20% 95%;
+    --sidebar-border: 24 7% 18%;
+    --sidebar-ring: 16 62% 58%;
+  }
+}
+
+/* Explicit choice — mirrors the block above (asserted by the token checker). */
+.dark {
+  color-scheme: dark;
+
+  --background: 24 10% 8%;
+  --foreground: 40 25% 93%;
+  --card: 24 8% 11%;
+  --card-foreground: 40 25% 93%;
+  --popover: 24 8% 12%;
+  --popover-foreground: 40 25% 93%;
+
+  --primary: 16 62% 55%;
+  --primary-foreground: 24 15% 10%;
+  --secondary: 24 6% 18%;
+  --secondary-foreground: 40 20% 92%;
+  --accent: 24 6% 21%;
+  --accent-foreground: 40 20% 92%;
+  --muted: 24 6% 16%;
+  --muted-foreground: 34 12% 68%;
+  --destructive: 0 78% 74%;
+  --destructive-foreground: 0 60% 14%;
+
+  --success: 152 45% 65%;
+  --success-foreground: 152 60% 10%;
+  --warning: 38 85% 65%;
+  --warning-foreground: 32 80% 12%;
+  --info: 213 80% 72%;
+  --info-foreground: 213 80% 12%;
+
+  --brand: 16 62% 58%;
+  --brand-foreground: 24 15% 10%;
+
+  --border: 24 7% 22%;
+  --input: 24 7% 26%;
+  --ring: 16 62% 58%;
+
+  --sidebar: 24 10% 6%;
+  --sidebar-foreground: 40 20% 90%;
+  --sidebar-accent: 24 6% 18%;
+  --sidebar-accent-foreground: 40 20% 95%;
+  --sidebar-border: 24 7% 18%;
+  --sidebar-ring: 16 62% 58%;
+}
