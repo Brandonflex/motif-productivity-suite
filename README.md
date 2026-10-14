@@ -1,5 +1,7 @@
 # Motif Productivity Suite
 
+
+
 [![Quality Pipeline](https://github.com/Brandonflex/motif-productivity-suite/actions/workflows/ci.yml/badge.svg)](https://github.com/Brandonflex/motif-productivity-suite/actions/workflows/ci.yml)
 ![React](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript)
